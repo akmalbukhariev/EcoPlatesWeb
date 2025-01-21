@@ -1,4 +1,5 @@
 import 'package:ecoplates_web/src/presentation/pages/admin_option_page.dart';
+import 'package:ecoplates_web/src/presentation/pages/main_dashboard_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -10,9 +11,9 @@ class AdminPage extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-   return MaterialApp(
+   return const MaterialApp(
      home: Scaffold(
-       body: AdminOptionPage(),
+       body: MainDashboardPage()//AdminOptionPage(),
      ),
    );
   }

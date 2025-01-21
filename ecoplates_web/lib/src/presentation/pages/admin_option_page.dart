@@ -13,6 +13,8 @@ class _AdminOptionPage extends State<AdminOptionPage> {
   late final TextEditingController txtBoxId;
   late final TextEditingController txtBoxPassword;
 
+  bool showLoginWindow = false; // State to control visibility
+
   @override
   void initState() {
     super.initState();
@@ -30,13 +32,27 @@ class _AdminOptionPage extends State<AdminOptionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: SafeArea(
-        child: Container(
-          //margin: const EdgeInsets.all(20),
-            alignment: Alignment.center,
-            color: const Color.fromRGBO(152, 224, 173, 1),
-            child: loginWindow() //optionButtons()
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            AnimatedPositioned(
+              left: showLoginWindow ? -MediaQuery.of(context).size.width : 0,
+              top: 0,
+              right: showLoginWindow ? MediaQuery.of(context).size.width : 0,
+              bottom: 0,
+              duration: const Duration(milliseconds: 500),
+              child: optionButtons(),
+            ),
+            AnimatedPositioned(
+              left: showLoginWindow ? 0 : MediaQuery.of(context).size.width,
+              top: 0,
+              right: showLoginWindow ? 0 : -MediaQuery.of(context).size.width,
+              bottom: 0,
+              duration: const Duration(milliseconds: 500),
+              child: loginWindow(),
+            ),
+          ],
         ),
       ),
     );
@@ -48,102 +64,123 @@ class _AdminOptionPage extends State<AdminOptionPage> {
       children: [
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-              minimumSize: const Size(200, 50)
+            minimumSize: const Size(200, 50),
           ),
-          onPressed: () {},
+          onPressed: () {
+            setState(() {
+              showLoginWindow = true; // Show login window
+            });
+          },
           child: const Text("Admin"),
         ),
-        const SizedBox(height: 20,),
+        const SizedBox(height: 20),
         ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                minimumSize: const Size(200, 50)
-            ),
-            onPressed: () {},
-            child: const Text("Super admin")
-        )
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(200, 50),
+          ),
+          onPressed: () {
+            setState(() {
+              showLoginWindow = true; // Show login window
+            });
+          },
+          child: const Text("Super admin"),
+        ),
       ],
     );
   }
 
   Widget loginWindow() {
     return Center(
-        child: Container(
-          width: 300,
-          height: 350,
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 3,
-                    blurRadius: 7,
-                    offset: const Offset(0, 3)
-                )
-              ]
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.grey,
-                      width: 1
+      child: Container(
+        width: 300,
+        height: 350,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 3,
+              blurRadius: 7,
+              offset: const Offset(0, 3),
+            )
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(left: 10, right: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextField(
+                      controller: txtBoxId,
+                      decoration: const InputDecoration(
+                        hintText: "Enter the id",
+                        border: InputBorder.none,
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(20)
+                  ],
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: CleanButtonTextField(
-                    isReadOnly: false,
-                    controlTextField: txtBoxId,
-                    placeHolder: "Enter the id",
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              margin: const EdgeInsets.only(left: 10.0, right: 10.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: TextField(
+                  controller: txtBoxPassword,
+                  decoration: const InputDecoration(
+                    hintText: "Enter the password",
+                    border: InputBorder.none,
                   ),
+                  obscureText: true,
                 ),
               ),
-              const SizedBox(height: 20,),
-              Container(
-                margin: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.grey,
-                      width: 1
-                    ),
-                    borderRadius: BorderRadius.circular(20)
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: CleanButtonTextField(
-                    isReadOnly: false,
-                    isPassword: true,
-                    controlTextField: txtBoxPassword,
-                    placeHolder: "Enter the password",
-                  ),
-                )
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(200, 50),
               ),
-              const SizedBox(height: 20,),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(200, 50)
-                ),
-                onPressed: () {},
-                child: const Text("Login"),
+              onPressed: () {},
+              child: const Text("Login"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(200, 50),
               ),
-              const SizedBox(height: 20,),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(200, 50)
-                ),
-                onPressed: () {},
-                child: const Text("Cancel"),
-              ),
-            ],
-          ),
-        )
+              onPressed: () {
+                setState(() {
+                  showLoginWindow = false; // Hide login window
+                });
+              },
+              child: const Text("Cancel"),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
