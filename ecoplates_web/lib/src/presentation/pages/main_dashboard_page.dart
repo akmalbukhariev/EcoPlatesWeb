@@ -30,7 +30,7 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   color: const Color.fromRGBO(25, 55, 100, 1), // Slightly darker blue
-                  child: Text(
+                  child: const Text(
                     'Ecoplates Admin',
                     style: TextStyle(
                       color: Colors.white,
