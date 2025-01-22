@@ -2,6 +2,8 @@ import 'package:ecoplates_web/src/presentation/widgets/simple_account_menu.dart'
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:pluto_grid/pluto_grid.dart';
+import 'package:scrollable_table_view/scrollable_table_view.dart';
 
 class User {
   final int userId;
@@ -144,14 +146,137 @@ Widget userDashboard(String userCount) {
           },
         ),
         const SizedBox(height: 16.0),
-        const Expanded(
-          child: UserGridWidget(),
+        Expanded(
+          child: testGridView()//UserGridWidget(),
         ),
       ],
     ),
   );
 }
 
+Widget testGridView() {
+  final List<PlutoColumn> columns = <PlutoColumn>[
+    PlutoColumn(
+      title: 'Id',
+      field: 'col1',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx!];
+        return Text(user.userId.toString());
+      },
+    ),
+    PlutoColumn(
+      title: 'First name',
+      field: 'col2',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx!];
+        return Text(user.firstName ?? '');
+      },
+    ),
+    PlutoColumn(
+      title: 'Last name',
+      field: 'col3',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx!];
+        return Text(user.lastName ?? '');
+      },
+    ),
+    PlutoColumn(
+      title: 'Status',
+      field: 'col4',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx!];
+        Color textColor;
+
+        switch (user.status) {
+          case 'ACTIVE':
+            textColor = Colors.green;
+            break;
+          case 'INACTIVE':
+            textColor = Colors.orange;
+            break;
+          case 'BANNED':
+            textColor = Colors.red;
+            break;
+          default:
+            textColor = Colors.black;
+        }
+
+        return Text(
+          user.status,
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+        );
+      },
+    ),
+    PlutoColumn(
+      title: 'Ban',
+      field: 'col7',
+      type: PlutoColumnType.text(),
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx!];
+        return ElevatedButton(
+          onPressed: () {
+            user.setBanned(!user.isBanned());
+            rendererContext.stateManager!.notifyListeners(); // Refresh grid
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: user.isBanned() ? Colors.red : Colors.blue,
+          ),
+          child: Text(user.isBanned() ? 'Unban' : 'Ban'),
+        );
+      },
+    ),
+    PlutoColumn(
+      title: 'Delete',
+      field: 'col8',
+      type: PlutoColumnType.text(),
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx!];
+        return ElevatedButton(
+          onPressed: () {
+            user.deleted = true;
+            rendererContext.stateManager!.notifyListeners(); // Refresh grid
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+          ),
+          child: user.deleted! ? const Text('Deleted') : const Text('Delete'),
+        );
+      },
+    ),
+  ];
+
+  late final PlutoGridStateManager stateManager;
+  final List<PlutoRow> placeholderRows = List.generate(
+    userData.length,
+        (index) => PlutoRow(cells: {
+      'col1': PlutoCell(value: ''),
+      'col2': PlutoCell(value: ''),
+      'col3': PlutoCell(value: ''),
+      'col4': PlutoCell(value: ''),
+      'col7': PlutoCell(value: ''),
+      'col8': PlutoCell(value: ''),
+    }),
+  );
+  return PlutoGrid(
+    columns: columns,
+    rows: placeholderRows,
+    onLoaded: (PlutoGridOnLoadedEvent event) {
+      stateManager = event.stateManager;
+      stateManager.setShowColumnFilter(true);
+    },
+    onChanged: (PlutoGridOnChangedEvent event) {
+      print(event);
+    },
+  );
+}
 
 Widget buildSummaryCard({
   required String title,

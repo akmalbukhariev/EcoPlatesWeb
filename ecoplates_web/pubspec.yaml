@@ -36,6 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
   scrollable_table_view: ^2.0.3
+  pluto_grid: ^8.0.0
 
 dev_dependencies:
   flutter_test:
