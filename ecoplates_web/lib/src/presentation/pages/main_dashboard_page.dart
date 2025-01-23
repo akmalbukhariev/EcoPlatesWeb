@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/company_dashboard.dart';
 import '../widgets/user_dashboard.dart';
 
 class MainDashboardPage extends StatefulWidget {
@@ -115,19 +116,13 @@ class _MainDashboardPage extends State<MainDashboardPage> {
     if (selectedMenu == 'User') {
       return UserDashBoard();
     } else if (selectedMenu == 'Company') {
-      return companyDashboard();
+      return CompanyDashBoard();
     } else if (selectedMenu == 'Settings') {
       return settingsPage();
     } else {
       return const Center(child: Text("Select a menu item"));
     }
   }
-}
-
-Widget companyDashboard() {
-  return const Center(
-    child: Text("Company Dashboard"),
-  );
 }
 
 Widget settingsPage() {
