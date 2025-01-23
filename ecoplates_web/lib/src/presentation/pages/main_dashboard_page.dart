@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../widgets/user_dashboard.dart';
 
-
 class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
 
@@ -127,14 +126,12 @@ class _MainDashboardPage extends State<MainDashboardPage> {
   }
 }
 
-// Placeholder for Company Dashboard
 Widget companyDashboard() {
   return const Center(
     child: Text("Company Dashboard"),
   );
 }
 
-// Placeholder for Settings Page
 Widget settingsPage() {
   return const Center(
     child: Text("Settings Page"),

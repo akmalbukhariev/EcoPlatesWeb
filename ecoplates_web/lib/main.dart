@@ -1,7 +1,5 @@
 import 'package:ecoplates_web/src/presentation/pages/main_dashboard_page.dart';
-import 'package:ecoplates_web/src/presentation/widgets/user_dashboard.dart';
 import 'package:flutter/material.dart';
-import 'package:scrollable_table_view/scrollable_table_view.dart';
 
 void main() {
   runApp(const AdminPage());

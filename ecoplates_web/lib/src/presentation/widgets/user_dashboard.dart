@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:pluto_grid/pluto_grid.dart';
-import 'package:scrollable_table_view/scrollable_table_view.dart';
 
 class User {
   final int userId;
@@ -47,6 +46,13 @@ class User {
   void setBanned(bool yes){
     status = yes? "BANNED" : "INACTIVE";
   }
+
+  String formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) {
+      return 'N/A'; // Handle null case
+    }
+    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+  }
 }
 
 final List<User> userData = [
@@ -62,6 +68,7 @@ final List<User> userData = [
     profilePictureUrl: 'https://via.placeholder.com/50',
     passwordHash: 'hash1',
     status: 'ACTIVE',
+    updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     deleted: false,
   ),
@@ -77,8 +84,57 @@ final List<User> userData = [
     profilePictureUrl: 'https://via.placeholder.com/50',
     passwordHash: 'hash2',
     status: 'INACTIVE',
+    updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     deleted: false,
+  ),
+  User(
+    userId: 3,
+    phoneNumber: '+29876543210',
+    email: 'jane.doe@example2.com',
+    firstName: 'Akmal',
+    lastName: 'Buxariev',
+    fullName: 'Jane Doe',
+    locationLatitude: 34.0522,
+    locationLongitude: -118.2437,
+    profilePictureUrl: 'https://via.placeholder.com/50',
+    passwordHash: 'hash2',
+    status: 'BANNED',
+    updatedAt: DateTime.now(),
+    createdAt: DateTime.now(),
+    deleted: false,
+  ),
+  User(
+    userId: 4,
+    phoneNumber: '+19876543210',
+    email: 'jane.doe@example3.com',
+    firstName: 'Akmal',
+    lastName: 'Tillaev',
+    fullName: 'Jane Doe',
+    locationLatitude: 34.0522,
+    locationLongitude: -118.2437,
+    profilePictureUrl: 'https://via.placeholder.com/50',
+    passwordHash: 'hash2',
+    status: 'ACTIVE',
+    updatedAt: DateTime.now(),
+    createdAt: DateTime.now(),
+    deleted: false,
+  ),
+  User(
+    userId: 5,
+    phoneNumber: '+19876543210',
+    email: 'jane.doe@example3.com',
+    firstName: 'Akmal',
+    lastName: 'Tillaev',
+    fullName: 'Jane Doe',
+    locationLatitude: 34.0522,
+    locationLongitude: -118.2437,
+    profilePictureUrl: 'https://via.placeholder.com/50',
+    passwordHash: 'hash2',
+    status: 'DELETED',
+    updatedAt: DateTime.now(),
+    createdAt: DateTime.now(),
+    deleted: true,
   ),
 ];
 
@@ -147,134 +203,11 @@ Widget userDashboard(String userCount) {
         ),
         const SizedBox(height: 16.0),
         Expanded(
-          child: testGridView()//UserGridWidget(),
+          child: UserGridView(),
+          //child: UserGridWidget(),
         ),
       ],
     ),
-  );
-}
-
-Widget testGridView() {
-  final List<PlutoColumn> columns = <PlutoColumn>[
-    PlutoColumn(
-      title: 'Id',
-      field: 'col1',
-      type: PlutoColumnType.text(),
-      readOnly: true,
-      renderer: (rendererContext) {
-        final user = userData[rendererContext.rowIdx!];
-        return Text(user.userId.toString());
-      },
-    ),
-    PlutoColumn(
-      title: 'First name',
-      field: 'col2',
-      type: PlutoColumnType.text(),
-      readOnly: true,
-      renderer: (rendererContext) {
-        final user = userData[rendererContext.rowIdx!];
-        return Text(user.firstName ?? '');
-      },
-    ),
-    PlutoColumn(
-      title: 'Last name',
-      field: 'col3',
-      type: PlutoColumnType.text(),
-      readOnly: true,
-      renderer: (rendererContext) {
-        final user = userData[rendererContext.rowIdx!];
-        return Text(user.lastName ?? '');
-      },
-    ),
-    PlutoColumn(
-      title: 'Status',
-      field: 'col4',
-      type: PlutoColumnType.text(),
-      readOnly: true,
-      renderer: (rendererContext) {
-        final user = userData[rendererContext.rowIdx!];
-        Color textColor;
-
-        switch (user.status) {
-          case 'ACTIVE':
-            textColor = Colors.green;
-            break;
-          case 'INACTIVE':
-            textColor = Colors.orange;
-            break;
-          case 'BANNED':
-            textColor = Colors.red;
-            break;
-          default:
-            textColor = Colors.black;
-        }
-
-        return Text(
-          user.status,
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
-        );
-      },
-    ),
-    PlutoColumn(
-      title: 'Ban',
-      field: 'col7',
-      type: PlutoColumnType.text(),
-      renderer: (rendererContext) {
-        final user = userData[rendererContext.rowIdx!];
-        return ElevatedButton(
-          onPressed: () {
-            user.setBanned(!user.isBanned());
-            rendererContext.stateManager!.notifyListeners(); // Refresh grid
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: user.isBanned() ? Colors.red : Colors.blue,
-          ),
-          child: Text(user.isBanned() ? 'Unban' : 'Ban'),
-        );
-      },
-    ),
-    PlutoColumn(
-      title: 'Delete',
-      field: 'col8',
-      type: PlutoColumnType.text(),
-      renderer: (rendererContext) {
-        final user = userData[rendererContext.rowIdx!];
-        return ElevatedButton(
-          onPressed: () {
-            user.deleted = true;
-            rendererContext.stateManager!.notifyListeners(); // Refresh grid
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-          ),
-          child: user.deleted! ? const Text('Deleted') : const Text('Delete'),
-        );
-      },
-    ),
-  ];
-
-  late final PlutoGridStateManager stateManager;
-  final List<PlutoRow> placeholderRows = List.generate(
-    userData.length,
-        (index) => PlutoRow(cells: {
-      'col1': PlutoCell(value: ''),
-      'col2': PlutoCell(value: ''),
-      'col3': PlutoCell(value: ''),
-      'col4': PlutoCell(value: ''),
-      'col7': PlutoCell(value: ''),
-      'col8': PlutoCell(value: ''),
-    }),
-  );
-  return PlutoGrid(
-    columns: columns,
-    rows: placeholderRows,
-    onLoaded: (PlutoGridOnLoadedEvent event) {
-      stateManager = event.stateManager;
-      stateManager.setShowColumnFilter(true);
-    },
-    onChanged: (PlutoGridOnChangedEvent event) {
-      print(event);
-    },
   );
 }
 
@@ -339,6 +272,345 @@ Widget buildSummaryCard({
   );
 }
 
+
+class UserGridView extends StatefulWidget{
+  const UserGridView({super.key});
+
+  @override
+  State<UserGridView> createState()  => _UserGridView();
+}
+
+class _UserGridView extends State<UserGridView> {
+  late PlutoGridStateManager stateManager;
+
+  final List<PlutoColumn> columns = [];
+
+  List<PlutoRow> rows = [];
+
+  List<PlutoRow> generateRows() {
+    return userData.map((user) {
+      return PlutoRow(cells: {
+        'col1': PlutoCell(value: user.userId.toString()),
+        'col2': PlutoCell(value: user.firstName ?? ''),
+        'col3': PlutoCell(value: user.lastName ?? ''),
+        'col4': PlutoCell(value: user.status),
+        'col5': PlutoCell(value: user.formatDateTime(user.updatedAt)),
+        'col6': PlutoCell(value: user.formatDateTime(user.createdAt)),
+        'col7': PlutoCell(value: user.isBanned() ? 'Banned' : 'Ban'),
+        'col8': PlutoCell(value: user.deleted == true ? 'Deleted' : 'Delete'),
+      });
+    }).toList();
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    
+    columns.addAll([
+      PlutoColumn(
+        title: 'Id',
+        field: 'col1',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'First Name',
+        field: 'col2',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Last Name',
+        field: 'col3',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Status',
+        field: 'col4',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+        renderer: (PlutoColumnRendererContext ctx) {
+          final user = userData[ctx.rowIdx];
+          Color textColor;
+
+          // Determine text color based on the status value
+          switch (ctx.cell.value) {
+            case 'ACTIVE':
+              textColor = Colors.green;
+              break;
+            case 'INACTIVE':
+              textColor = Colors.orange;
+              break;
+            case 'BANNED':
+              textColor = Colors.red;
+              break;
+            case 'DELETED':
+              textColor = Colors.grey;
+              break;
+            default:
+              textColor = Colors.black;
+          }
+
+          return Text(
+            ctx.column.type.applyFormat(ctx.cell.value),
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          );
+        },
+      ),
+      PlutoColumn(
+        title: 'Updated',
+        field: 'col5',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Created',
+        field: 'col6',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Ban',
+        field: 'col7',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+        renderer: (rendererContext) {
+          final user = userData[rendererContext.rowIdx];
+          return ElevatedButton(
+            onPressed: (user.deleted ?? false) ? null :  () {
+              user.setBanned(!user.isBanned());
+              rendererContext.stateManager.notifyListeners();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: user.isBanned() ? Colors.red : Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(user.isBanned() ? 'Banned' : 'Ban'),
+          );
+        },
+      ),
+      PlutoColumn(
+        title: 'Delete',
+        field: 'col8',
+        type: PlutoColumnType.text(),
+        renderer: (rendererContext) {
+          final user = userData[rendererContext.rowIdx];
+          return ElevatedButton(
+            onPressed: () {
+              user.deleted = !(user.deleted ?? false);
+              rendererContext.stateManager.notifyListeners();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: user.deleted == true ? Colors.grey : Colors.blueGrey,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(user.deleted == true ? 'Deleted' : 'Delete'),
+          );
+        },
+      ),
+    ]);
+    rows = generateRows();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PlutoGrid(
+      columns: columns,
+      rows: rows, // Dynamically generate rows from userData
+      configuration: const PlutoGridConfiguration(),
+      createFooter: (stateManager) {
+        stateManager.setPageSize(100, notify: false);
+        return PlutoPagination(stateManager);
+      },
+      onLoaded: (PlutoGridOnLoadedEvent event) {
+        stateManager = event.stateManager;
+        stateManager.setShowColumnFilter(true);
+      },
+      onChanged: (PlutoGridOnChangedEvent event) {
+
+      },
+    );
+  }
+}
+
+/*
+
+class UserGridView extends StatefulWidget{
+  const UserGridView({super.key});
+
+  @override
+  State<UserGridView> createState()  => _UserGridView();
+}
+
+class _UserGridView extends State<UserGridView>{
+
+  late final PlutoGridStateManager stateManager;
+  final List<PlutoRow> placeholderRows = List.generate(
+    userData.length,
+        (index) => PlutoRow(cells: {
+          'col1': PlutoCell(value: ''),
+          'col2': PlutoCell(value: ''),
+          'col3': PlutoCell(value: ''),
+          'col4': PlutoCell(value: ''),
+          'col5': PlutoCell(value: ''),
+          'col6': PlutoCell(value: ''),
+          'col7': PlutoCell(value: ''),
+          'col8': PlutoCell(value: ''),
+        }),
+  );
+
+  final List<PlutoColumn> columns = <PlutoColumn>[
+    PlutoColumn(
+      title: 'Id',
+      field: 'col1',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        return Text(user.userId.toString());
+      },
+    ),
+    PlutoColumn(
+      title: 'First name',
+      field: 'col2',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        return Text(user.firstName ?? '');
+      },
+    ),
+    PlutoColumn(
+      title: 'Last name',
+      field: 'col3',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        return Text(user.lastName ?? '');
+      },
+    ),
+    PlutoColumn(
+      title: 'Status',
+      field: 'col4',
+      type: PlutoColumnType.text(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        Color textColor;
+
+        switch (user.status) {
+          case 'ACTIVE':
+            textColor = Colors.green;
+            break;
+          case 'INACTIVE':
+            textColor = Colors.orange;
+            break;
+          case 'BANNED':
+            textColor = Colors.red;
+            break;
+          default:
+            textColor = Colors.black;
+        }
+
+        return Text(
+          user.status,
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+        );
+      },
+    ),
+    PlutoColumn(
+      title: 'Updated',
+      field: 'col5',
+      type: PlutoColumnType.date(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        return Text(user.formatDateTime(user.updatedAt));
+      },
+    ),
+    PlutoColumn(
+      title: 'Created',
+      field: 'col6',
+      type: PlutoColumnType.date(),
+      readOnly: true,
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        return Text(user.formatDateTime(user.createdAt));
+      },
+    ),
+    PlutoColumn(
+      title: 'Ban',
+      field: 'col7',
+      type: PlutoColumnType.text(),
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        return SizedBox(
+          width: 100,
+          child: ElevatedButton(
+            onPressed: () {
+              user.setBanned(!user.isBanned());
+              rendererContext.stateManager.notifyListeners();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: user.isBanned() == true ? Colors.orange : Colors.green,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(50, 30),
+            ),
+            child: Text(user.isBanned() == true ? 'Banned' : 'Ban'),
+          ),
+        );
+      },
+    ),
+    PlutoColumn(
+      title: 'Delete',
+      field: 'col8',
+      type: PlutoColumnType.text(),
+      renderer: (rendererContext) {
+        final user = userData[rendererContext.rowIdx];
+        return SizedBox(
+          width: 100,
+          child: ElevatedButton(
+            onPressed: () {
+              user.deleted = !(user.deleted ?? false);
+              rendererContext.stateManager.notifyListeners(); // Refresh grid
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: user.deleted == true ? Colors.grey : Colors.red,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(50, 30),
+            ),
+            child: Text(user.deleted == true ? 'Deleted' : 'Delete'),
+          ),
+        );
+      },
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+
+     return PlutoGrid(
+       columns: columns,
+       rows: placeholderRows,
+       configuration: PlutoGridConfiguration(),
+       onLoaded: (PlutoGridOnLoadedEvent event) {
+         stateManager = event.stateManager;
+         stateManager.setShowColumnFilter(true);
+       },
+       onChanged: (PlutoGridOnChangedEvent event) {
+         print(event);
+       },
+     );
+  }
+}
+
+*/
+
 class UserGridWidget extends StatefulWidget {
   const UserGridWidget({super.key});
 
@@ -374,6 +646,7 @@ class _UserGridWidgetState extends State<UserGridWidget> {
 
   @override
   Widget build(BuildContext context) {
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal, // Enable horizontal scrolling
       child: ConstrainedBox(
