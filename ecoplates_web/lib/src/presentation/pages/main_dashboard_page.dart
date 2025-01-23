@@ -70,7 +70,6 @@ class _MainDashboardPage extends State<MainDashboardPage> {
     );
   }
 
-  // Helper to Build Menu Items with Animation
   Widget _buildMenuItem(String title, IconData icon, VoidCallback onClick) {
     bool isSelected = selectedMenu == title;
     return GestureDetector(
@@ -112,10 +111,9 @@ class _MainDashboardPage extends State<MainDashboardPage> {
     );
   }
 
-  /// Build Dashboard Based on Selected Menu
   Widget _buildDashboard() {
     if (selectedMenu == 'User') {
-      return userDashboard("4520"); // Pass total user count as an example
+      return UserDashBoard();
     } else if (selectedMenu == 'Company') {
       return companyDashboard();
     } else if (selectedMenu == 'Settings') {
