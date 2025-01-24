@@ -1,11 +1,12 @@
 
 import 'dart:math';
 
+import 'package:ecoplates_web/src/constant/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
-import '../../constant/UserOrCompanyStatus.dart';
+import '../../constant/user_or_company_status.dart';
 import 'build_summary_card.dart';
 
 class CompanyInfo {
@@ -87,7 +88,7 @@ final List<CompanyInfo> companyData = [
     social_profile_link: 'https://facebook.com/greensolutions',
     createdAt: DateTime(2020, 9, 22),
     updatedAt: DateTime(2023, 2, 10),
-    status: UserOrCompanyStatus.INACTIVE,
+    status: UserOrCompanyStatus.BANNED,
     deleted: false,
   ),
   CompanyInfo(
@@ -103,7 +104,7 @@ final List<CompanyInfo> companyData = [
     social_profile_link: 'https://facebook.com/globalenterprises',
     createdAt: DateTime(2018, 3, 14),
     updatedAt: DateTime(2022, 7, 25),
-    status: UserOrCompanyStatus.BANNED,
+    status: UserOrCompanyStatus.NONE,
     deleted: true,
   ),
   CompanyInfo(
@@ -119,8 +120,8 @@ final List<CompanyInfo> companyData = [
     social_profile_link: 'https://facebook.com/healthcarecorp',
     createdAt: DateTime(2021, 11, 1),
     updatedAt: DateTime(2023, 1, 10),
-    status: UserOrCompanyStatus.ACTIVE,
-    deleted: false,
+    status: UserOrCompanyStatus.NONE,
+    deleted: true,
   ),
 ];
 
@@ -233,8 +234,8 @@ class _CompanyGridView extends State<CompanyGridView> {
         'col7': PlutoCell(value: item.status.value),
         'col8': PlutoCell(value: item.formatDateTime(item.updatedAt)),
         'col9': PlutoCell(value: item.formatDateTime(item.createdAt)),
-        'col10': PlutoCell(value: item.isBanned() ? 'Banned' : 'Ban'),
-        'col11': PlutoCell(value: item.deleted == true ? 'Deleted' : 'Delete'),
+        'col10': PlutoCell(value: item.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col11': PlutoCell(value: item.deleted == true ?  Constants.DELETED : Constants.DELETE),
       });
     }).toList();
   }
@@ -286,10 +287,8 @@ class _CompanyGridView extends State<CompanyGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
         renderer: (PlutoColumnRendererContext ctx) {
-          //final user = companyData[ctx.rowIdx];
           Color textColor;
 
-          // Determine text color based on the status value
           switch (ctx.cell.value) {
             case 'ACTIVE':
               textColor = Colors.green;
@@ -300,11 +299,8 @@ class _CompanyGridView extends State<CompanyGridView> {
             case 'BANNED':
               textColor = Colors.red;
               break;
-            case 'DELETED':
-              textColor = Colors.grey;
-              break;
             default:
-              textColor = Colors.black;
+              textColor = Colors.grey;
           }
 
           return Text(
@@ -328,46 +324,52 @@ class _CompanyGridView extends State<CompanyGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
       ),
+      //Ban
       PlutoColumn(
-        title: 'Ban',
+        title: Constants.BAN,
         field: 'col10',
         type: PlutoColumnType.text(),
         readOnly: true,
-        enableSorting: false,
-        enableFilterMenuItem: false,
+        enableFilterMenuItem: true,
         renderer: (rendererContext) {
-          final user = companyData[rendererContext.rowIdx];
+          final company = companyData[rendererContext.rowIdx];
+          bool isBanned = rendererContext.cell.value == Constants.BANNED;
           return ElevatedButton(
-            onPressed: (user.deleted ?? false) ? null :  ()  {
-              user.setBanned(!user.isBanned());
-              rendererContext.stateManager.notifyListeners();
+            onPressed: (company.deleted ?? false) ? null : () {
+              rendererContext.stateManager.changeCellValue(
+                rendererContext.cell,
+                isBanned ? Constants.BAN : Constants.BANNED,
+              );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: user.isBanned() ? Colors.red : Colors.green,
+              backgroundColor: isBanned ? Colors.red : Colors.green,
               foregroundColor: Colors.white,
             ),
-            child: Text(user.isBanned() ? 'Banned' : 'Ban'),
+            child: Text(isBanned ? Constants.BANNED : Constants.BAN),
           );
         },
       ),
+      //Delete
       PlutoColumn(
-        title: 'Delete',
+        title: Constants.DELETE,
         field: 'col11',
         type: PlutoColumnType.text(),
         readOnly: true,
-        enableFilterMenuItem: false,
+        enableFilterMenuItem: true,
         renderer: (rendererContext) {
-          final user = companyData[rendererContext.rowIdx];
+          bool isDeleted = rendererContext.cell.value == Constants.DELETED;
           return ElevatedButton(
             onPressed: () {
-              user.deleted = !(user.deleted ?? false);
-              rendererContext.stateManager.notifyListeners();
+              rendererContext.stateManager.changeCellValue(
+                rendererContext.cell,
+                isDeleted ? Constants.DELETE : Constants.DELETED,
+              );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: user.deleted == true ? Colors.grey : Colors.blueGrey,
+              backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
               foregroundColor: Colors.white,
             ),
-            child: Text(user.deleted == true ? 'Deleted' : 'Delete'),
+            child: Text(isDeleted ? Constants.DELETED : Constants.DELETE),
           );
         },
       ),
@@ -379,7 +381,7 @@ class _CompanyGridView extends State<CompanyGridView> {
   Widget build(BuildContext context) {
     return PlutoGrid(
       columns: columns,
-      rows: rows, // Dynamically generate rows from userData
+      rows: rows,
       configuration: const PlutoGridConfiguration(),
       createFooter: (stateManager) {
         stateManager.setPageSize(100, notify: false);

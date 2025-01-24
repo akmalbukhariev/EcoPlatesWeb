@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
+import '../../constant/user_or_company_status.dart';
+import '../../constant/constants.dart';
 import 'build_summary_card.dart';
 
-class User {
+class UserInfo {
   final int userId;
   final String phoneNumber;
   final String? email;
@@ -18,12 +20,12 @@ class User {
   final String? profilePictureUrl;
   final String passwordHash;
   final String? tokenMb;
-  String status;
+  UserOrCompanyStatus status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   bool? deleted;
 
-  User({
+  UserInfo({
     required this.userId,
     required this.phoneNumber,
     this.email,
@@ -35,18 +37,18 @@ class User {
     this.profilePictureUrl,
     required this.passwordHash,
     this.tokenMb,
-    this.status = 'INACTIVE',
+    this.status = UserOrCompanyStatus.INACTIVE,
     this.createdAt,
     this.updatedAt,
     this.deleted = false,
   });
 
   bool isBanned(){
-    return status == "BANNED";
+    return status == UserOrCompanyStatus.BANNED;
   }
 
   void setBanned(bool yes){
-    status = yes? "BANNED" : "INACTIVE";
+    status = yes? UserOrCompanyStatus.BANNED : UserOrCompanyStatus.INACTIVE;
   }
 
   String formatDateTime(DateTime? dateTime) {
@@ -57,8 +59,8 @@ class User {
   }
 }
 
-final List<User> userData = [
-  User(
+final List<UserInfo> userData = [
+  UserInfo(
     userId: 1,
     phoneNumber: '+1234567890',
     email: 'john.doe@example.com',
@@ -69,12 +71,12 @@ final List<User> userData = [
     locationLongitude: -122.4194,
     profilePictureUrl: 'https://via.placeholder.com/50',
     passwordHash: 'hash1',
-    status: 'ACTIVE',
+    status: UserOrCompanyStatus.ACTIVE,
     updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     deleted: false,
   ),
-  User(
+  UserInfo(
     userId: 2,
     phoneNumber: '+9876543210',
     email: 'jane.doe@example.com',
@@ -85,12 +87,12 @@ final List<User> userData = [
     locationLongitude: -118.2437,
     profilePictureUrl: 'https://via.placeholder.com/50',
     passwordHash: 'hash2',
-    status: 'INACTIVE',
+    status: UserOrCompanyStatus.INACTIVE,
     updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     deleted: false,
   ),
-  User(
+  UserInfo(
     userId: 3,
     phoneNumber: '+29876543210',
     email: 'jane.doe@example2.com',
@@ -101,12 +103,12 @@ final List<User> userData = [
     locationLongitude: -118.2437,
     profilePictureUrl: 'https://via.placeholder.com/50',
     passwordHash: 'hash2',
-    status: 'BANNED',
+    status: UserOrCompanyStatus.BANNED,
     updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     deleted: false,
   ),
-  User(
+  UserInfo(
     userId: 4,
     phoneNumber: '+19876543210',
     email: 'jane.doe@example3.com',
@@ -117,23 +119,23 @@ final List<User> userData = [
     locationLongitude: -118.2437,
     profilePictureUrl: 'https://via.placeholder.com/50',
     passwordHash: 'hash2',
-    status: 'ACTIVE',
+    status: UserOrCompanyStatus.BANNED,
     updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     deleted: false,
   ),
-  User(
+  UserInfo(
     userId: 5,
     phoneNumber: '+19876543210',
     email: 'jane.doe@example3.com',
-    firstName: 'Akmal',
+    firstName: 'Iqbol',
     lastName: 'Tillaev',
     fullName: 'Jane Doe',
     locationLatitude: 34.0522,
     locationLongitude: -118.2437,
     profilePictureUrl: 'https://via.placeholder.com/50',
     passwordHash: 'hash2',
-    status: 'DELETED',
+    status: UserOrCompanyStatus.NONE,
     updatedAt: DateTime.now(),
     createdAt: DateTime.now(),
     deleted: true,
@@ -242,11 +244,11 @@ class _UserGridView extends State<UserGridView> {
         'col1': PlutoCell(value: user.userId.toString()),
         'col2': PlutoCell(value: user.firstName ?? ''),
         'col3': PlutoCell(value: user.lastName ?? ''),
-        'col4': PlutoCell(value: user.status),
+        'col4': PlutoCell(value: user.status.value),
         'col5': PlutoCell(value: user.formatDateTime(user.updatedAt)),
         'col6': PlutoCell(value: user.formatDateTime(user.createdAt)),
-        'col7': PlutoCell(value: user.isBanned() ? 'Banned' : 'Ban'),
-        'col8': PlutoCell(value: user.deleted == true ? 'Deleted' : 'Delete'),
+        'col7': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col8': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
       });
     }).toList();
   }
@@ -280,10 +282,8 @@ class _UserGridView extends State<UserGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
         renderer: (PlutoColumnRendererContext ctx) {
-          final user = userData[ctx.rowIdx];
           Color textColor;
 
-          // Determine text color based on the status value
           switch (ctx.cell.value) {
             case 'ACTIVE':
               textColor = Colors.green;
@@ -294,11 +294,8 @@ class _UserGridView extends State<UserGridView> {
             case 'BANNED':
               textColor = Colors.red;
               break;
-            case 'DELETED':
-              textColor = Colors.grey;
-              break;
             default:
-              textColor = Colors.black;
+              textColor = Colors.grey;
           }
 
           return Text(
@@ -322,42 +319,52 @@ class _UserGridView extends State<UserGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
       ),
+      //Ban
       PlutoColumn(
-        title: 'Ban',
+        title: Constants.BAN,
         field: 'col7',
         type: PlutoColumnType.text(),
         readOnly: true,
+        enableFilterMenuItem: false,
         renderer: (rendererContext) {
           final user = userData[rendererContext.rowIdx];
+          bool isBanned = rendererContext.cell.value == Constants.BANNED;
           return ElevatedButton(
-            onPressed: (user.deleted ?? false) ? null :  () {
-              user.setBanned(!user.isBanned());
-              rendererContext.stateManager.notifyListeners();
+            onPressed: (user.deleted ?? false) ? null : () {
+              rendererContext.stateManager.changeCellValue(
+                rendererContext.cell,
+                isBanned ? Constants.BAN : Constants.BANNED,
+              );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: user.isBanned() ? Colors.red : Colors.green,
+              backgroundColor: isBanned ? Colors.red : Colors.green,
               foregroundColor: Colors.white,
             ),
-            child: Text(user.isBanned() ? 'Banned' : 'Ban'),
+            child: Text(isBanned ? Constants.BANNED : Constants.BAN),
           );
         },
       ),
+      //Delete
       PlutoColumn(
-        title: 'Delete',
+        title: Constants.DELETE,
         field: 'col8',
         type: PlutoColumnType.text(),
+        readOnly: true,
+        enableFilterMenuItem: false,
         renderer: (rendererContext) {
-          final user = userData[rendererContext.rowIdx];
+          bool isDeleted = rendererContext.cell.value == Constants.DELETED;
           return ElevatedButton(
             onPressed: () {
-              user.deleted = !(user.deleted ?? false);
-              rendererContext.stateManager.notifyListeners();
+              rendererContext.stateManager.changeCellValue(
+                rendererContext.cell,
+                isDeleted ? Constants.DELETE : Constants.DELETED,
+              );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: user.deleted == true ? Colors.grey : Colors.blueGrey,
+              backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
               foregroundColor: Colors.white,
             ),
-            child: Text(user.deleted == true ? 'Deleted' : 'Delete'),
+            child: Text(isDeleted ? Constants.DELETED : Constants.DELETE),
           );
         },
       ),

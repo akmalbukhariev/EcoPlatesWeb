@@ -1,8 +1,9 @@
+
 enum UserOrCompanyStatus {
+  NONE("NONE"),
   ACTIVE("ACTIVE"),
   INACTIVE("INACTIVE"),
   BANNED("BANNED");
-  //DELETED("DELETED");
 
   final String value;
 
