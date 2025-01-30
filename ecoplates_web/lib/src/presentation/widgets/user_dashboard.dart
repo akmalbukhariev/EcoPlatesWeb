@@ -1,3 +1,4 @@
+import 'package:ecoplates_web/src/data/model/pagination_info.dart';
 import 'package:ecoplates_web/src/presentation/widgets/simple_account_menu.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,59 +7,12 @@ import 'package:pluto_grid/pluto_grid.dart';
 
 import '../../constant/user_or_company_status.dart';
 import '../../constant/constants.dart';
+import '../../data/data_provider/http_service_user.dart';
+import '../../data/http_response/response_user_info.dart';
+import '../../data/model/user_info.dart';
 import 'build_summary_card.dart';
 
-class UserInfo {
-  final int userId;
-  final String phoneNumber;
-  final String? email;
-  final String? firstName;
-  final String? lastName;
-  final String? fullName;
-  final double locationLatitude;
-  final double locationLongitude;
-  final String? profilePictureUrl;
-  final String passwordHash;
-  final String? tokenMb;
-  UserOrCompanyStatus status;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  bool? deleted;
-
-  UserInfo({
-    required this.userId,
-    required this.phoneNumber,
-    this.email,
-    this.firstName,
-    this.lastName,
-    this.fullName,
-    this.locationLatitude = 0.0,
-    this.locationLongitude = 0.0,
-    this.profilePictureUrl,
-    required this.passwordHash,
-    this.tokenMb,
-    this.status = UserOrCompanyStatus.INACTIVE,
-    this.createdAt,
-    this.updatedAt,
-    this.deleted = false,
-  });
-
-  bool isBanned(){
-    return status == UserOrCompanyStatus.BANNED;
-  }
-
-  void setBanned(bool yes){
-    status = yes? UserOrCompanyStatus.BANNED : UserOrCompanyStatus.INACTIVE;
-  }
-
-  String formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) {
-      return 'N/A'; // Handle null case
-    }
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-  }
-}
-
+/*
 final List<UserInfo> userData = [
   UserInfo(
     userId: 1,
@@ -141,7 +95,7 @@ final List<UserInfo> userData = [
     deleted: true,
   ),
 ];
-
+*/
 class UserDashBoard extends StatefulWidget{
   const UserDashBoard({super.key});
 
@@ -238,26 +192,63 @@ class _UserGridView extends State<UserGridView> {
   final List<PlutoColumn> columns = [];
   List<PlutoRow> rows = [];
 
-  List<PlutoRow> generateRows() {
-    return userData.map((user) {
+  Future<void> fetchUserInfo() async {
+    if (stateManager == null) {
+      print("State manager not initialized yet.");
+      return;
+    }
+
+    stateManager.setShowLoading(true);
+
+    try {
+      Paginationinfo data = Paginationinfo(pageSize: 10, offset: 0);
+      ResponseUserInfo? response = await HttpServiceUser.getUserInfo(data: data);
+
+      if (response != null && response.resultData != null) {
+        final List<UserInfo> userInfoList = response.resultData!.users;
+        print("Response: ${userInfoList[1].firstName}");
+
+        // Generate rows and log them before updating the state
+        final generatedRows = generateRows(userInfoList);
+        print("Generated ${generatedRows.length} rows");
+
+        if (generatedRows.isNotEmpty) {
+          print("Sample row data: ${generatedRows.first.cells}");
+        }
+
+        // Update the state and log the row data again
+        setState(() {
+          rows = generatedRows;
+          stateManager.notifyListeners();
+          print("SetState called. Rows updated. First row data: ${rows.first.cells}");
+        });
+      } else {
+        print('Failed to fetch user data: ${response?.resultMsg}');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    } finally {
+      stateManager.setShowLoading(false);
+    }
+  }
+
+  List<PlutoRow> generateRows(List<UserInfo> userInfoList) {
+    return userInfoList.map((user) {
       return PlutoRow(cells: {
         'col1': PlutoCell(value: user.userId.toString()),
         'col2': PlutoCell(value: user.firstName ?? ''),
         'col3': PlutoCell(value: user.lastName ?? ''),
         'col4': PlutoCell(value: user.status.value),
         'col5': PlutoCell(value: user.formatDateTime(user.updatedAt)),
-        'col6': PlutoCell(value: user.formatDateTime(user.createdAt)),
+        'col6': PlutoCell(value: user.formatDateTime(user.createdAt)),/*
         'col7': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
-        'col8': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
+        'col8': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),*/
       });
     }).toList();
   }
 
-  @override
-  void initState(){
-    super.initState();
-    
-    columns.addAll([
+  List<PlutoColumn> generateColumns(List<UserInfo> userInfoList) {
+    return [
       PlutoColumn(
         title: 'Id',
         field: 'col1',
@@ -319,7 +310,7 @@ class _UserGridView extends State<UserGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
       ),
-      //Ban
+      /*
       PlutoColumn(
         title: Constants.BAN,
         field: 'col7',
@@ -327,10 +318,12 @@ class _UserGridView extends State<UserGridView> {
         readOnly: true,
         enableFilterMenuItem: false,
         renderer: (rendererContext) {
-          final user = userData[rendererContext.rowIdx];
+          final user = userInfoList[rendererContext.rowIdx];
           bool isBanned = rendererContext.cell.value == Constants.BANNED;
           return ElevatedButton(
-            onPressed: (user.deleted ?? false) ? null : () {
+            onPressed: (user.deleted ?? false)
+                ? null
+                : () {
               rendererContext.stateManager.changeCellValue(
                 rendererContext.cell,
                 isBanned ? Constants.BAN : Constants.BANNED,
@@ -344,7 +337,6 @@ class _UserGridView extends State<UserGridView> {
           );
         },
       ),
-      //Delete
       PlutoColumn(
         title: Constants.DELETE,
         field: 'col8',
@@ -352,6 +344,7 @@ class _UserGridView extends State<UserGridView> {
         readOnly: true,
         enableFilterMenuItem: false,
         renderer: (rendererContext) {
+          final user = userInfoList[rendererContext.rowIdx];
           bool isDeleted = rendererContext.cell.value == Constants.DELETED;
           return ElevatedButton(
             onPressed: () {
@@ -368,27 +361,44 @@ class _UserGridView extends State<UserGridView> {
           );
         },
       ),
-    ]);
-    rows = generateRows();
+      */
+    ];
+  }
+
+  @override
+  void initState(){
+    super.initState();
+
+    columns.addAll(generateColumns([]));
   }
 
   @override
   Widget build(BuildContext context) {
-    return PlutoGrid(
-      columns: columns,
-      rows: rows, // Dynamically generate rows from userData
-      configuration: const PlutoGridConfiguration(),
-      createFooter: (stateManager) {
-        stateManager.setPageSize(100, notify: false);
-        return PlutoPagination(stateManager);
-      },
-      onLoaded: (PlutoGridOnLoadedEvent event) {
-        stateManager = event.stateManager;
-        stateManager.setShowColumnFilter(true);
-      },
-      onChanged: (PlutoGridOnChangedEvent event) {
+    print("Building grid with ${columns.length} columns and ${rows.length} rows");
 
-      },
+    if (rows.isNotEmpty) {
+      print("Sample row data in build: ${rows.first.cells}");
+    }
+
+    return Scaffold(
+      body: Container(
+        padding: const EdgeInsets.all(8.0),
+        child: PlutoGrid(
+          columns: columns,
+          rows: rows,
+          configuration: const PlutoGridConfiguration(),
+          onLoaded: (PlutoGridOnLoadedEvent event) {
+            stateManager = event.stateManager;
+            stateManager.setShowColumnFilter(true);
+
+            print("State manager initialized. Fetching user info...");
+            fetchUserInfo();
+          },
+          onChanged: (PlutoGridOnChangedEvent event) {
+            print("Row changed: ${event.row.cells}");
+          },
+        ),
+      ),
     );
   }
 }
