@@ -1,13 +1,21 @@
 import 'dart:convert';
 
+import 'package:ecoplates_web/src/data/model/change_user_deletion_status.dart';
+import 'package:ecoplates_web/src/data/model/change_user_status.dart';
 import 'package:ecoplates_web/src/data/model/pagination_info.dart';
 
+import '../http_response/response_change_deletion_status.dart';
+import '../http_response/response_change_user_status.dart';
 import '../http_response/response_user_info.dart';
 import 'package:http/http.dart' as http;
 
 class HttpServiceUser{
-  static String SERVER_URL = "http://localhost:8083/ecoplatesuser/api/v1/user/admin/";
+  static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/user/";
   static String GET_PAGINATED_USER = "${SERVER_URL}getPaginatedUsers";
+  static String CHANGE_USER_STATUS = "${SERVER_URL}changeUserStatus";
+  static String CHANGE_USER_DELETION_STATUS = "${SERVER_URL}changeUserDeletionStatus";
+
+  static String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOIiwiZXhwIjoxNzcwMjU2NjM0fQ.YP5nae5N1BNx5AZGjkhXoEe1QKKnXRpk8M4K1_WT1_k";
 
   static Future<ResponseUserInfo?> getUserInfo({required Paginationinfo? data}) async {
 
@@ -15,6 +23,7 @@ class HttpServiceUser{
       var headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'Authorization': 'Bearer $TOKEN',
       };
 
       var request = http.Request('POST', Uri.parse(GET_PAGINATED_USER));
@@ -24,10 +33,8 @@ class HttpServiceUser{
       http.StreamedResponse streamedResponse = await request.send();
 
       if (streamedResponse.statusCode == 200) {
-        // Read the response body and decode JSON
         String responseBody = await streamedResponse.stream.bytesToString();
         Map<String, dynamic> jsonData = json.decode(responseBody);
-        //print("Received data: ${jsonData}");
 
         return ResponseUserInfo.fromJson(jsonData);
       } else {
@@ -37,23 +44,66 @@ class HttpServiceUser{
       print("Exception: $e");
     }
 
-    /*try {
-      var response = await http.post(
-        Uri.parse(GET_PAGENATED_USER),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: json.encode(data?.toJson()),
-      );
+    return null;
+  }
 
-      if (response.statusCode == 200) {
-        return ResponseUserInfo.fromJson(json.decode(response.body));
+  static Future<ResponseChangeUserStatus?> changeUserStatus({required ChangeUserStatus? data}) async {
+
+    try {
+      var headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $TOKEN',
+      };
+
+      var request = http.Request('PUT', Uri.parse(CHANGE_USER_STATUS));
+      request.body = json.encode(data?.toJson());
+      request.headers.addAll(headers);
+
+      http.StreamedResponse streamedResponse = await request.send();
+
+      if (streamedResponse.statusCode == 200) {
+        String responseBody = await streamedResponse.stream.bytesToString();
+        Map<String, dynamic> jsonData = json.decode(responseBody);
+
+        return ResponseChangeUserStatus.fromJson(jsonData);
       } else {
-        print("Error: ${response.statusCode} - ${response.body}");
+        print("Error: ${streamedResponse.statusCode} - ${streamedResponse.reasonPhrase}");
       }
     } catch (e) {
-      print("Error: $e");
-    }*/
+      print("Exception: $e");
+    }
+
+    return null;
+  }
+
+  static Future<ResponseChangeUserDeletionStatus?> changeUserDeletionStatus({required ChangeUserDeletionStatus? data}) async {
+
+    try {
+      var headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $TOKEN',
+      };
+
+      var request = http.Request('PUT', Uri.parse(CHANGE_USER_DELETION_STATUS));
+      request.body = json.encode(data?.toJson());
+      request.headers.addAll(headers);
+
+      http.StreamedResponse streamedResponse = await request.send();
+
+      if (streamedResponse.statusCode == 200) {
+        String responseBody = await streamedResponse.stream.bytesToString();
+        Map<String, dynamic> jsonData = json.decode(responseBody);
+
+        return ResponseChangeUserDeletionStatus.fromJson(jsonData);
+      } else {
+        print("Error: ${streamedResponse.statusCode} - ${streamedResponse.reasonPhrase}");
+      }
+    } catch (e) {
+      print("Exception: $e");
+    }
+
     return null;
   }
 }
