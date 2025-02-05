@@ -171,19 +171,19 @@ class _UserGridView extends State<UserGridView> {
 
   List<PlutoRow> _buildRows() {
     final users = widget.resultData?.users ?? [];
+
+    // Ensure all columns exist with fallback values for each row
     return users.map((user) {
       return PlutoRow(cells: {
-        'col1': PlutoCell(value: user.userId.toString()),
-        'col2': PlutoCell(value: user.phoneNumber ?? ''),
-        'col3': PlutoCell(value: user.firstName ?? ''),
-        'col4': PlutoCell(value: user.lastName ?? ''),
-        'col5': PlutoCell(value: user.status.value),
-        'col6': PlutoCell(value: user.formatDateTime(user.updatedAt)),
-        'col7': PlutoCell(value: user.formatDateTime(user.createdAt)),
-        'col8': PlutoCell(
-            value: user.isBanned() ? Constants.BANNED : Constants.BAN),
-        'col9': PlutoCell(
-            value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
+        'col1': PlutoCell(value: user.userId?.toString() ?? ''),
+        'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
+        'col3': PlutoCell(value: user.firstName ?? 'N/A'),
+        'col4': PlutoCell(value: user.lastName ?? 'N/A'),
+        'col5': PlutoCell(value: user.status.value ?? 'Unknown'),
+        'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
+        'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
+        'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
       });
     }).toList();
   }
@@ -369,7 +369,6 @@ class _UserGridView extends State<UserGridView> {
           );
         },
       ),
-
     ];
   }
 
@@ -567,6 +566,9 @@ class _UserGridView extends State<UserGridView> {
             stateManager = event.stateManager;
             stateManager.setShowColumnFilter(true);
 
+            final newRows = _buildRows();
+            stateManager.removeAllRows();
+            stateManager.appendRows(newRows);
             //stateManager.setShowLoading(true);
             /*
             fetchUserInfo().then((fetchedRows) {
