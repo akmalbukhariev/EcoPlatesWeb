@@ -168,11 +168,11 @@ class _UserGridView extends State<UserGridView> {
   late PlutoGridStateManager stateManager;
 
   List<PlutoColumn> columns = [];
+  final List<PlutoRow> rows = [];
 
   List<PlutoRow> _buildRows() {
     final users = widget.resultData?.users ?? [];
 
-    // Ensure all columns exist with fallback values for each row
     return users.map((user) {
       return PlutoRow(cells: {
         'col1': PlutoCell(value: user.userId?.toString() ?? ''),
@@ -264,55 +264,68 @@ class _UserGridView extends State<UserGridView> {
         readOnly: true,
         enableFilterMenuItem: false,
         renderer: (rendererContext) {
-          final phone = rendererContext.row.cells['col2']?.value as String?;
-          if (phone == null || phone.isEmpty) {
-            return const Text("No phone number");
-          }
+          try {
+            final phone = rendererContext.row.cells['col2']?.value as String?;
+            if (phone == null || phone.isEmpty) {
+              return const Text("No phone number");
+            }
 
-          final bool isDeleted = rendererContext.row.cells['col9']?.value == Constants.DELETED;
+            final bool isDeleted = rendererContext.row.cells['col9']?.value ==
+                Constants.DELETED;
+            final bool isBanned = rendererContext.cell.value ==
+                Constants.BANNED;
 
-          final bool isBanned = rendererContext.cell.value == Constants.BANNED;
-          final String confirmationText = isBanned
-              ? "Do you really want to unban this user?"
-              : "Do you really want to ban this user?";
+            final String confirmationText = isBanned
+                ? "Do you really want to unban this user?"
+                : "Do you really want to ban this user?";
 
-          return ElevatedButton(
-            onPressed: isDeleted ? null :
-                () async {
-              final bool? confirm = await AppAlertDialogYesNo.showAlert(
-                context: context,
-                title: "Confirmation",
-                content: confirmationText,
-                yesText: "Confirm",
-                noText: "Cancel",
-              );
-
-              if (confirm != true) return;
-
-              try {
-                final newStatus = isBanned ? UserOrCompanyStatus.INACTIVE : UserOrCompanyStatus.BANNED;
-                ChangeUserStatus data = ChangeUserStatus(
-                  phoneNumber: phone,
-                  status: newStatus,
+            return ElevatedButton(
+              onPressed: isDeleted ? null :
+                  () async {
+                final bool? confirm = await AppAlertDialogYesNo.showAlert(
+                  context: context,
+                  title: "Confirmation",
+                  content: confirmationText,
+                  yesText: "Confirm",
+                  noText: "Cancel",
                 );
 
-                ResponseChangeUserStatus? response = await HttpServiceUser.changeUserStatus(data: data);
+                if (confirm != true) return;
 
-                if (response != null) {
-                  widget.onRefresh();  // Trigger the refresh
-                } else {
-                  print('Failed to update user status: ${response?.resultMsg}');
+                try {
+                  final newStatus = isBanned
+                      ? UserOrCompanyStatus.INACTIVE
+                      : UserOrCompanyStatus.BANNED;
+                  ChangeUserStatus data = ChangeUserStatus(
+                    phoneNumber: phone,
+                    status: newStatus,
+                  );
+
+                  ResponseChangeUserStatus? response = await HttpServiceUser
+                      .changeUserStatus(data: data);
+
+                  if (response != null) {
+                    widget.onRefresh(); // Trigger the refresh
+                  } else {
+                    print(
+                        'Failed to update user status: ${response?.resultMsg}');
+                  }
+                } catch (e) {
+                  print('Error updating user status: $e');
                 }
-              } catch (e) {
-                print('Error updating user status: $e');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isBanned ? Colors.red : Colors.green,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(isBanned ? Constants.BANNED : Constants.BAN),
-          );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isBanned ? Colors.red : Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(isBanned ? Constants.BANNED : Constants.BAN),
+            );
+          }
+          catch(e, stackTrace){
+            print('Error rendering column: ${rendererContext.column.field}, Error: $e');
+            print(stackTrace);
+            return const Text("Error rendering");
+          }
         },
       ),
       PlutoColumn(
@@ -375,159 +388,6 @@ class _UserGridView extends State<UserGridView> {
   @override
   void initState(){
     super.initState();
-
-    /*
-    columns.addAll([
-      PlutoColumn(
-        title: 'Id',
-        field: 'col1',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-      ),
-      PlutoColumn(
-        title: 'Phone number',
-        field: 'col2',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-      ),
-      PlutoColumn(
-        title: 'First Name',
-        field: 'col3',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-      ),
-      PlutoColumn(
-        title: 'Last Name',
-        field: 'col4',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-      ),
-      PlutoColumn(
-        title: 'Status',
-        field: 'col5',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-        renderer: (PlutoColumnRendererContext ctx) {
-          Color textColor;
-
-          switch (ctx.cell.value) {
-            case 'ACTIVE':
-              textColor = Colors.green;
-              break;
-            case 'INACTIVE':
-              textColor = Colors.orange;
-              break;
-            case 'BANNED':
-              textColor = Colors.red;
-              break;
-            default:
-              textColor = Colors.grey;
-          }
-
-          return Text(
-            ctx.column.type.applyFormat(ctx.cell.value),
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-            ),
-          );
-        },
-      ),
-      PlutoColumn(
-        title: 'Updated',
-        field: 'col6',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-      ),
-      PlutoColumn(
-        title: 'Created',
-        field: 'col7',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-      ),
-      PlutoColumn(
-        title: Constants.BAN,
-        field: 'col8',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-        enableFilterMenuItem: false,
-          renderer: (rendererContext) {
-            final phone = rendererContext.row.cells['col2']?.value as String?;
-            if (phone == null || phone.isEmpty) {
-              return const Text("No phone number");
-            }
-
-            // Determine current state from the row's value
-            final bool isBanned = rendererContext.cell.value == Constants.BANNED;
-            final String confirmationText = isBanned
-                ? "Do you really want to unban this user?"
-                : "Do you really want to ban this user?";
-
-            return ElevatedButton(
-              onPressed: () async {
-
-                final bool? confirm = await AppAlertDialogYesNo.showAlert(
-                  context: rendererContext.context,
-                  title: "Confirmation",
-                  content: confirmationText,
-                  yesText: "Confirm",
-                  noText: "Cancel",
-                );
-
-                if (confirm != true) return;
-
-                try {
-
-                  final newStatus = isBanned ? UserOrCompanyStatus.INACTIVE : UserOrCompanyStatus.BANNED;
-                  ChangeUserStatus data = ChangeUserStatus(
-                    phoneNumber: phone,
-                    status: newStatus,
-                  );
-
-                  ResponseChangeUserStatus? response = await HttpServiceUser.changeUserStatus(data: data);
-
-                  if (response != null) {
-                    widget.onRefresh();
-                  } else {
-                    print('Failed to update user status: ${response?.resultMsg}');
-                  }
-                } catch (e) {
-                  print('Error updating user status: $e');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isBanned ? Colors.red : Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: Text(isBanned ? Constants.BANNED : Constants.BAN),
-            );
-          }
-      ),
-      PlutoColumn(
-        title: Constants.DELETE,
-        field: 'col9',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-        enableFilterMenuItem: false,
-        renderer: (rendererContext) {
-          bool isDeleted = rendererContext.cell.value == Constants.DELETED;
-          return ElevatedButton(
-            onPressed: () {
-              rendererContext.stateManager.changeCellValue(
-                rendererContext.cell,
-                isDeleted ? Constants.DELETE : Constants.DELETED,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(isDeleted ? Constants.DELETED : Constants.DELETE),
-          );
-        },
-      ),
-    ]);
-    */
   }
 
   void _refreshGrid() {
@@ -535,8 +395,8 @@ class _UserGridView extends State<UserGridView> {
       final newRows = _buildRows();
 
       // Clear existing rows and add new ones
-      stateManager.refRows.clear();
-      stateManager.refRows.addAll(newRows);
+      stateManager.removeAllRows();
+      stateManager.appendRows(newRows);
 
       // Notify the grid to update
       stateManager.notifyListeners();
@@ -562,26 +422,9 @@ class _UserGridView extends State<UserGridView> {
           columns: _buildColumns(context),
           rows: _buildRows(),
           configuration: const PlutoGridConfiguration(),
-          onLoaded: (PlutoGridOnLoadedEvent event) {
+          onLoaded: (PlutoGridOnLoadedEvent event) async {
             stateManager = event.stateManager;
             stateManager.setShowColumnFilter(true);
-
-            final newRows = _buildRows();
-            stateManager.removeAllRows();
-            stateManager.appendRows(newRows);
-            //stateManager.setShowLoading(true);
-            /*
-            fetchUserInfo().then((fetchedRows) {
-              PlutoGridStateManager.initializeRowsAsync(
-                columns,
-                fetchedRows,
-              ).then((value) {
-                stateManager.refRows.addAll(value);
-
-                //stateManager.setShowLoading(false);
-              });
-            });
-            */
           },
           onChanged: (PlutoGridOnChangedEvent event) {
             print("Row changed: ${event.row.cells}");
