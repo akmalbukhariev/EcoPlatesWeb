@@ -142,7 +142,6 @@ class _UserDashBoard extends State<UserDashBoard> {
                     resultData: resultData,
                     onRefresh: refreshDashboard,
                   ),
-                  //child: UserGridWidget(),
                 ),
               ],
             ),
@@ -166,9 +165,6 @@ class UserGridView extends StatefulWidget{
 
 class _UserGridView extends State<UserGridView> {
   late PlutoGridStateManager stateManager;
-
-  List<PlutoColumn> columns = [];
-  final List<PlutoRow> rows = [];
 
   List<PlutoRow> _buildRows() {
     final users = widget.resultData?.users ?? [];
@@ -257,6 +253,7 @@ class _UserGridView extends State<UserGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
       ),
+      //Ban
       PlutoColumn(
         title: Constants.BAN,
         field: 'col8',
@@ -264,70 +261,64 @@ class _UserGridView extends State<UserGridView> {
         readOnly: true,
         enableFilterMenuItem: false,
         renderer: (rendererContext) {
-          try {
-            final phone = rendererContext.row.cells['col2']?.value as String?;
-            if (phone == null || phone.isEmpty) {
-              return const Text("No phone number");
-            }
+          final phone = rendererContext.row.cells['col2']?.value as String?;
+          if (phone == null || phone.isEmpty) {
+            return const Text("No phone number");
+          }
 
-            final bool isDeleted = rendererContext.row.cells['col9']?.value ==
-                Constants.DELETED;
-            final bool isBanned = rendererContext.cell.value ==
-                Constants.BANNED;
+          final bool isDeleted = rendererContext.row.cells['col9']?.value ==
+              Constants.DELETED;
+          final bool isBanned = rendererContext.cell.value ==
+              Constants.BANNED;
 
-            final String confirmationText = isBanned
-                ? "Do you really want to unban this user?"
-                : "Do you really want to ban this user?";
+          final String confirmationText = isBanned
+              ? "Do you really want to unban this user?"
+              : "Do you really want to ban this user?";
 
-            return ElevatedButton(
-              onPressed: isDeleted ? null :
-                  () async {
-                final bool? confirm = await AppAlertDialogYesNo.showAlert(
-                  context: context,
-                  title: "Confirmation",
-                  content: confirmationText,
-                  yesText: "Confirm",
-                  noText: "Cancel",
+          return ElevatedButton(
+            onPressed: isDeleted ? null :
+                () async {
+              final bool? confirm = await AppAlertDialogYesNo.showAlert(
+                context: context,
+                title: "Confirmation",
+                content: confirmationText,
+                yesText: "Confirm",
+                noText: "Cancel",
+              );
+
+              if (confirm != true) return;
+
+              try {
+                final newStatus = isBanned
+                    ? UserOrCompanyStatus.INACTIVE
+                    : UserOrCompanyStatus.BANNED;
+                ChangeUserStatus data = ChangeUserStatus(
+                  phoneNumber: phone,
+                  status: newStatus,
                 );
 
-                if (confirm != true) return;
+                ResponseChangeUserStatus? response = await HttpServiceUser
+                    .changeUserStatus(data: data);
 
-                try {
-                  final newStatus = isBanned
-                      ? UserOrCompanyStatus.INACTIVE
-                      : UserOrCompanyStatus.BANNED;
-                  ChangeUserStatus data = ChangeUserStatus(
-                    phoneNumber: phone,
-                    status: newStatus,
-                  );
-
-                  ResponseChangeUserStatus? response = await HttpServiceUser
-                      .changeUserStatus(data: data);
-
-                  if (response != null) {
-                    widget.onRefresh(); // Trigger the refresh
-                  } else {
-                    print(
-                        'Failed to update user status: ${response?.resultMsg}');
-                  }
-                } catch (e) {
-                  print('Error updating user status: $e');
+                if (response != null) {
+                  widget.onRefresh(); // Trigger the refresh
+                } else {
+                  print(
+                      'Failed to update user status: ${response?.resultMsg}');
                 }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isBanned ? Colors.red : Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: Text(isBanned ? Constants.BANNED : Constants.BAN),
-            );
-          }
-          catch(e, stackTrace){
-            print('Error rendering column: ${rendererContext.column.field}, Error: $e');
-            print(stackTrace);
-            return const Text("Error rendering");
-          }
+              } catch (e) {
+                print('Error updating user status: $e');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isBanned ? Colors.red : Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(isBanned ? Constants.BANNED : Constants.BAN),
+          );
         },
       ),
+      //Delete
       PlutoColumn(
         title: Constants.DELETE,
         field: 'col9',
@@ -340,7 +331,8 @@ class _UserGridView extends State<UserGridView> {
             return const Text("No phone number");
           }
 
-          final bool isDeleted = rendererContext.cell.value == Constants.DELETED;
+          final bool isDeleted = rendererContext.cell.value ==
+              Constants.DELETED;
           final String confirmationText = isDeleted
               ? "Do you really want to restore this user?"
               : "Do you really want to delete this user?";
@@ -363,12 +355,14 @@ class _UserGridView extends State<UserGridView> {
                   deleted: !isDeleted,
                 );
 
-                ResponseChangeUserDeletionStatus? response = await HttpServiceUser.changeUserDeletionStatus(data: data);
+                ResponseChangeUserDeletionStatus? response = await HttpServiceUser
+                    .changeUserDeletionStatus(data: data);
 
                 if (response != null) {
                   widget.onRefresh();
                 } else {
-                  print('Failed to update user deletion status: ${response?.resultMsg}');
+                  print('Failed to update user deletion status: ${response
+                      ?.resultMsg}');
                 }
               } catch (e) {
                 print('Error updating user deletion status: $e');
@@ -394,11 +388,9 @@ class _UserGridView extends State<UserGridView> {
     if (widget.resultData != null) {
       final newRows = _buildRows();
 
-      // Clear existing rows and add new ones
       stateManager.removeAllRows();
       stateManager.appendRows(newRows);
 
-      // Notify the grid to update
       stateManager.notifyListeners();
     }
   }
@@ -407,7 +399,6 @@ class _UserGridView extends State<UserGridView> {
   void didUpdateWidget(UserGridView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Refresh the grid if new data is provided
     if (oldWidget.resultData != widget.resultData) {
       _refreshGrid();
     }
