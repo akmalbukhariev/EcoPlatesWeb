@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../constant/constants.dart';
 import '../widgets/company_dashboard.dart';
 import '../widgets/user_dashboard.dart';
 
@@ -12,7 +13,7 @@ class MainDashboardPage extends StatefulWidget {
 }
 
 class _MainDashboardPage extends State<MainDashboardPage> {
-  String selectedMenu = 'Users'; // Tracks which menu is active
+  String selectedMenu = Constants.USER;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                   padding: const EdgeInsets.all(20),
                   color: const Color.fromRGBO(25, 55, 100, 1), // Slightly darker blue
                   child: const Text(
-                    'Ecoplates Admin',
+                    Constants.ECOPLATES_ADMIN,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -41,19 +42,19 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                 ),
                 const SizedBox(height: 20),
                 // Menu Items
-                _buildMenuItem('User', Icons.person, (){
+                _buildMenuItem(Constants.USER, Icons.person, (){
                   setState(() {
-                    selectedMenu = 'User';
+                    selectedMenu = Constants.USER;
                   });
                 }),
-                _buildMenuItem('Company', Icons.business, (){
+                _buildMenuItem(Constants.COMPANY, Icons.business, (){
                   setState(() {
-                    selectedMenu = 'Company';
+                    selectedMenu = Constants.COMPANY;
                   });
                 }),
-                _buildMenuItem('Settings', Icons.settings, (){
+                _buildMenuItem(Constants.SETTINGS, Icons.settings, (){
                   setState(() {
-                    selectedMenu = 'Settings';
+                    selectedMenu = Constants.SETTINGS;
                   });
                 }),
               ],
@@ -113,11 +114,11 @@ class _MainDashboardPage extends State<MainDashboardPage> {
   }
 
   Widget _buildDashboard() {
-    if (selectedMenu == 'User') {
-      return UserDashBoard();
-    } else if (selectedMenu == 'Company') {
-      return CompanyDashBoard();
-    } else if (selectedMenu == 'Settings') {
+    if (selectedMenu == Constants.USER) {
+      return const UserDashBoard();
+    } else if (selectedMenu == Constants.COMPANY) {
+      return const CompanyDashBoard();
+    } else if (selectedMenu == Constants.SETTINGS) {
       return settingsPage();
     } else {
       return const Center(child: Text("Select a menu item"));
