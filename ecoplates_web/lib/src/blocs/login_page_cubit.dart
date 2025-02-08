@@ -46,6 +46,9 @@ class LoginPageCubit extends Cubit<LoginPageState>{
          if (response != null && response.resultCode == Result.SUCCESS.codeAsString) {
             return response.resultMsg ?? "Login successful!";
          }
+         else if(response != null){
+            return response.resultMsg ?? "";
+         }
 
          return "Unknown error occurred.";
       } catch (e) {
@@ -55,5 +58,4 @@ class LoginPageCubit extends Cubit<LoginPageState>{
          setShowLoading(show: false);
       }
    }
-
 }

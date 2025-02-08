@@ -1,16 +1,18 @@
 import 'package:ecoplates_web/src/constant/admin_role.dart';
+import 'package:ecoplates_web/src/presentation/widgets/loading_overlay_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/login_page_cubit.dart';
 import '../../blocs/login_page_state.dart';
+import '../../blocs/main_page_cubit.dart';
+import '../../blocs/main_page_state.dart';
 import '../../constant/constants.dart';
 import '../widgets/app_alert_dialog_yesno.dart';
-import '../widgets/company_dashboard.dart';
-import '../widgets/setting_dashboard.dart';
-import '../widgets/user_dashboard.dart';
-import 'admin_option_page.dart';
+import '../widgets/dashboard/company_dashboard.dart';
+import '../widgets/dashboard/setting_dashboard.dart';
+import '../widgets/dashboard/user_dashboard.dart';
 
 class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
@@ -22,93 +24,106 @@ class MainDashboardPage extends StatefulWidget {
 class _MainDashboardPage extends State<MainDashboardPage> {
   String selectedMenu = Constants.USER;
 
-  late LoginPageCubit cubit;
+  late LoginPageCubit loginCubit;
+
+  @override
+  void initState() {
+    super.initState();
+
+    loginCubit = context.read<LoginPageCubit>();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<LoginPageCubit, LoginPageState>(
+      body: BlocBuilder<MainPageCubit, MainPageState>(
         builder: (context, state){
-          return Row(
+          return Stack(
             children: [
-              // Left Menu Container
-              Container(
-                width: 200,
-                color: const Color.fromRGBO(30, 60, 114, 1), // Blue background
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // App Logo/Header
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      color: const Color.fromRGBO(25, 55, 100, 1), // Slightly darker blue
-                      child: const Text(
-                        Constants.ECOPLATES_ADMIN,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  // Left Menu Container
+                  Container(
+                    width: 200,
+                    color: const Color.fromRGBO(30, 60, 114, 1), // Blue background
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // App Logo/Header
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          color: const Color.fromRGBO(25, 55, 100, 1), // Slightly darker blue
+                          child: const Text(
+                            Constants.ECOPLATES_ADMIN,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Menu Items
-                    _buildMenuItem(Constants.USER, Icons.person, (){
-                      setState(() {
-                        selectedMenu = Constants.USER;
-                      });
-                    }),
-                    _buildMenuItem(Constants.COMPANY, Icons.business, (){
-                      setState(() {
-                        selectedMenu = Constants.COMPANY;
-                      });
-                    }),
-                    if(state.adminRole == AdminRole.ADMIN)
-                      _buildMenuItem(Constants.SETTINGS, Icons.settings, (){
-                      setState(() {
-                        selectedMenu = Constants.SETTINGS;
-                      });
-                    }),
-                    Expanded(
-                        child: SizedBox()
-                    ),
-                    //Log out button
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        backgroundColor: Colors.red,        // Set background color to red
-                        shape: RoundedRectangleBorder(      // Rectangle shape
-                          borderRadius: BorderRadius.zero,
+                        const SizedBox(height: 20),
+                        // Menu Items
+                        _buildMenuItem(Constants.USER, Icons.person, (){
+                          setState(() {
+                            selectedMenu = Constants.USER;
+                          });
+                        }),
+                        _buildMenuItem(Constants.COMPANY, Icons.business, (){
+                          setState(() {
+                            selectedMenu = Constants.COMPANY;
+                          });
+                        }),
+                        if(loginCubit.state.adminRole == AdminRole.ADMIN)
+                          _buildMenuItem(Constants.SETTINGS, Icons.settings, (){
+                            setState(() {
+                              selectedMenu = Constants.SETTINGS;
+                            });
+                          }),
+                        Expanded(
+                            child: SizedBox()
                         ),
-                      ),
-                      onPressed: () async {
-                        final bool? confirm = await AppAlertDialogYesNo.showAlert(
-                          context: context,
-                          title: "Confirmation",
-                          content: "Do you really want to log out?",
-                          yesText: "Yes",
-                          noText: "No",
-                        );
+                        //Log out button
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(0, 50),
+                            backgroundColor: Colors.red,        // Set background color to red
+                            shape: RoundedRectangleBorder(      // Rectangle shape
+                              borderRadius: BorderRadius.zero,
+                            ),
+                          ),
+                          onPressed: () async {
+                            final bool? confirm = await AppAlertDialogYesNo.showAlert(
+                              context: context,
+                              title: "Confirmation",
+                              content: "Do you really want to log out?",
+                              yesText: "Yes",
+                              noText: "No",
+                            );
 
-                        if (confirm != true) return;
+                            if (confirm != true) return;
 
-                        Navigator.pushReplacementNamed(context, '/');
-                      },
-                      child: const Text(
-                        Constants.LOG_OUT,
-                        style: TextStyle(color: Colors.white),  // Optional: Set text color to white for contrast
-                      ),
-                    )
-                  ],
-                ),
+                            Navigator.pushReplacementNamed(context, '/');
+                          },
+                          child: const Text(
+                            Constants.LOG_OUT,
+                            style: TextStyle(color: Colors.white),  // Optional: Set text color to white for contrast
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  // Main Content
+                  Expanded(
+                    child: Container(
+                      color: const Color.fromRGBO(249, 251, 252, 1), // Light background
+                      child: _buildDashboard(),
+                    ),
+                  ),
+                ],
               ),
-              // Main Content
-              Expanded(
-                child: Container(
-                  color: const Color.fromRGBO(249, 251, 252, 1), // Light background
-                  child: _buildDashboard(),
-                ),
-              ),
+              if(state.isLoading)
+                LoadingOverlayWidget()
             ],
           );
         }

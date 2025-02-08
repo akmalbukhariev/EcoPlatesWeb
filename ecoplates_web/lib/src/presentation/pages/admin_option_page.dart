@@ -1,7 +1,9 @@
 import 'package:ecoplates_web/src/blocs/login_page_cubit.dart';
 import 'package:ecoplates_web/src/constant/admin_role.dart';
+import 'package:ecoplates_web/src/constant/constants.dart';
 import 'package:ecoplates_web/src/presentation/widgets/clean_button_text_field.dart';
 import 'package:ecoplates_web/src/presentation/widgets/loading_overlay_widget.dart';
+import 'package:ecoplates_web/src/presentation/widgets/show_snack_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,7 +49,7 @@ class _AdminOptionPage extends State<AdminOptionPage> {
         builder: (context, state){
           return SafeArea(
             child: Container(
-              /*decoration: BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -56,7 +58,7 @@ class _AdminOptionPage extends State<AdminOptionPage> {
                     Color(0xFF624DCE),  // Deep blue-purple tone
                   ],
                 ),
-              ),*/
+              ),
               child: Stack(
                 children: [
                   AnimatedPositioned(
@@ -95,6 +97,8 @@ class _AdminOptionPage extends State<AdminOptionPage> {
             minimumSize: const Size(200, 50),
           ),
           onPressed: () {
+            txtBoxId.text = "";
+            txtBoxPassword.text = "";
             cubit.setShowLoginWindow(show: true);
             cubit.setAdminRole(adminRole: AdminRole.ADMIN);
           },
@@ -106,6 +110,8 @@ class _AdminOptionPage extends State<AdminOptionPage> {
             minimumSize: const Size(200, 50),
           ),
           onPressed: () {
+            txtBoxId.text = "";
+            txtBoxPassword.text = "";
             cubit.setShowLoginWindow(show: true);
             cubit.setAdminRole(adminRole: AdminRole.SUPER_ADMIN);
           },
@@ -190,19 +196,24 @@ class _AdminOptionPage extends State<AdminOptionPage> {
                 minimumSize: const Size(200, 50),
               ),
               onPressed: () async {
+                if(cubit.state.adminRole == AdminRole.ADMIN && txtBoxId.text.toUpperCase() != Constants.ADMIN){
+                  ShowSnackBar(context: context, message: "The admin ID must be \"admin\"");
+                  return;
+                }
+                else if(cubit.state.adminRole == AdminRole.SUPER_ADMIN && txtBoxId.text.toUpperCase() == Constants.ADMIN){
+                  ShowSnackBar(context: context, message: "Please choose the admin role as the admin.");
+                  return;
+                }
+
+                print(cubit.state.adminRole);
+                print(txtBoxId.text.toUpperCase());
+
                 String msg = await cubit.login(adminId: txtBoxId.text, password: txtBoxPassword.text);
 
                 if (msg == Result.SUCCESS.message) {
-                  /*Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => MainDashboardPage()),
-                  );*/
-
                   Navigator.pushReplacementNamed(context, '/dashboard');
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(msg)),
-                  );
+                  ShowSnackBar(context: context, message: msg);
                 }
               },
               child: const Text("Login"),

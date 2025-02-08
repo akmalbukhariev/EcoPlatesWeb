@@ -56,7 +56,7 @@ class HttpServiceAdmin{
         String responseBody = await streamedResponse.stream.bytesToString();
         Map<String, dynamic> jsonData = json.decode(responseBody);
 
-        print("Response Headers: ${streamedResponse.headers}");
+        //print("Response Headers: ${streamedResponse.headers}");
 
         if (streamedResponse.headers.containsKey('access-token')) {
           setToken(streamedResponse.headers['access-token']!);

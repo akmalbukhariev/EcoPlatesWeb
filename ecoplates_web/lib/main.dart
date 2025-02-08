@@ -1,4 +1,5 @@
 import 'package:ecoplates_web/src/blocs/login_page_cubit.dart';
+import 'package:ecoplates_web/src/blocs/main_page_cubit.dart';
 import 'package:ecoplates_web/src/presentation/pages/admin_option_page.dart';
 import 'package:ecoplates_web/src/presentation/pages/main_dashboard_page.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,10 @@ class AdminPage extends StatelessWidget {
         providers: [
           BlocProvider(
               create: (context) => LoginPageCubit(),
-          )
+          ),
+          BlocProvider(
+              create: (context) => MainPageCubit(),
+          ),
         ],
         child: MaterialApp(
           routes: {

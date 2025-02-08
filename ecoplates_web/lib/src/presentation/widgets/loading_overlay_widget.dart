@@ -11,7 +11,7 @@ class LoadingOverlayWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: Container(
-        color: Colors.white.withOpacity(0.5),
+        color: Colors.black.withOpacity(0.5),
         child: const Center(
           child: CupertinoActivityIndicator(radius: 20),
         ),
