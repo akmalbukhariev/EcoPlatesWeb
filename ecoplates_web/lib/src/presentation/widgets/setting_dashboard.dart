@@ -1,14 +1,17 @@
 
+import 'package:ecoplates_web/src/constant/result.dart';
+import 'package:ecoplates_web/src/presentation/widgets/show_snack_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
 import '../../constant/constants.dart';
-import '../../data/data_provider/http_service_admin.dart';
-import '../../data/http_response/response_all_admin_info.dart';
-import '../../data/http_response/response_info.dart';
-import '../../data/model/admin_info.dart';
-import 'AppAlertDialogYesNo.dart';
+import '../../model/admin_info.dart';
+import '../../model/admin_register_info.dart';
+import '../../services/data_provider/http_service_admin.dart';
+import '../../services/http_response/response_all_admin_info.dart';
+import '../../services/http_response/response_info.dart';
+import 'app_alert_dialog_yesno.dart';
 import 'loading_overlay_widget.dart';
 
 class SettingDashBoard extends StatefulWidget{
@@ -43,7 +46,7 @@ class _SettingDashBoard extends State<SettingDashBoard> {
           resultData = response.resultData;
         });
       } else {
-        print('Failed to fetch user data: ${response?.resultMsg}');
+        print('Failed to fetch admin data: ${response?.resultMsg}');
       }
     } catch (e) {
       print('Error fetching admin data: $e');
@@ -57,6 +60,124 @@ class _SettingDashBoard extends State<SettingDashBoard> {
     fetchUserInfo();
   }
 
+  void showAddAdminPopup(BuildContext context) {
+    final TextEditingController adminIdController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController confirmPasswordController = TextEditingController();
+    String selectedRole = Constants.ADMIN;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add Admin'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: adminIdController,
+                decoration: const InputDecoration(
+                  labelText: 'Admin ID',
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              DropdownButtonFormField<String>(
+                value: selectedRole,
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    selectedRole = newValue;
+                  }
+                },
+                items: [Constants.ADMIN, Constants.ADMIN_SUPER]
+                    .map((role) => DropdownMenuItem(
+                  value: role,
+                  child: Text(role),
+                ))
+                    .toList(),
+                decoration: const InputDecoration(
+                  labelText: 'Admin Role',
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: confirmPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                ),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the popup
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String adminId = adminIdController.text;
+                String password = passwordController.text;
+                String confirmPassword = confirmPasswordController.text;
+
+                if (adminId.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+                  ShowSnackBar(context: context, message: 'Please fill in all fields');
+                } else if (password != confirmPassword) {
+                  ShowSnackBar(context: context, message: 'Passwords do not match');
+                } else {
+
+                  Navigator.of(context).pop();
+
+                  setState(() {
+                    isLoading = true;
+                  });
+                  try {
+                    AdminRegisterInfo data = AdminRegisterInfo(
+                        admin_id: adminId,
+                        password: password,
+                        admin_role: selectedRole
+                    );
+                    ResponseInfo? response = await HttpServiceAdmin.register(
+                        data: data);
+
+                    if (response != null &&
+                        response.resultCode == Result.SUCCESS.codeAsString) {
+                      refreshDashboard();
+                    }
+                    else {
+                      ShowSnackBar(context: context, message: response?.resultMsg ??
+                          "An error occurred");
+                    }
+                  }
+                  catch (e){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('An unexpected error occurred')),
+                    );
+                  }
+                  finally {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
+                }
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -66,6 +187,15 @@ class _SettingDashBoard extends State<SettingDashBoard> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: (){
+                      showAddAdminPopup(context);
+                    },
+                    child: const Text('Add admin'),
+                  ),
+                ),
                 const SizedBox(height: 16.0),
                 Expanded(
                   child: SettingGridView(
@@ -102,7 +232,7 @@ class _SettingGridView extends State<SettingGridView> {
         'col1': PlutoCell(value: admin.id?.toString() ?? ''),
         'col2': PlutoCell(value: admin.adminId),
         'col3': PlutoCell(value: admin.adminRole.name),
-        'col4': PlutoCell(value: admin.formatDateTime(admin.updatedAt)),
+        //'col4': PlutoCell(value: admin.formatDateTime(admin.updatedAt)),
         'col5': PlutoCell(value: admin.formatDateTime(admin.createdAt)),
         'col6': PlutoCell(value: admin.deleted == true ? Constants.DELETED : Constants.DELETE),
       });
@@ -129,12 +259,12 @@ class _SettingGridView extends State<SettingGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
       ),
-      PlutoColumn(
+      /*PlutoColumn(
         title: 'Updated',
         field: 'col4',
         type: PlutoColumnType.text(),
         readOnly: true,
-      ),
+      ),*/
       PlutoColumn(
         title: 'Created',
         field: 'col5',
@@ -149,17 +279,19 @@ class _SettingGridView extends State<SettingGridView> {
         readOnly: true,
         enableFilterMenuItem: false,
         renderer: (rendererContext) {
-          final phone = rendererContext.row.cells['col2']?.value as String?;
-          if (phone == null || phone.isEmpty) {
+          final id = rendererContext.row.cells['col2']?.value as String?;
+          final admin_role = rendererContext.row.cells['col3']?.value as String?;
+          final isAdmin = admin_role == Constants.ADMIN;
+
+          if (id == null || id.isEmpty) {
             return const Text("No admin id");
           }
 
-          final bool isDeleted = rendererContext.cell.value ==
-              Constants.DELETED;
           const String confirmationText = "Do you really want to delete this admin?";
 
           return ElevatedButton(
-            onPressed: () async {
+            onPressed: isAdmin ? null :
+                () async {
               final bool? confirm = await AppAlertDialogYesNo.showAlert(
                 context: context,
                 title: "Confirmation",
@@ -171,23 +303,23 @@ class _SettingGridView extends State<SettingGridView> {
               if (confirm != true) return;
 
               try {
-                ResponseInfo? response = await HttpServiceAdmin.deleteAdminById(adminId: "");
+                ResponseInfo? response = await HttpServiceAdmin.deleteAdminById(adminId: id);
 
                 if (response != null) {
                   widget.onRefresh();
                 } else {
-                  print('Failed to update user deletion status: ${response
+                  ShowSnackBar(context: context, message: 'Failed to update user deletion status: ${response
                       ?.resultMsg}');
                 }
               } catch (e) {
-                print('Error updating user deletion status: $e');
+                ShowSnackBar(context: context, message: 'Error updating user deletion status: $e');
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
+              backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text(isDeleted ? Constants.DELETED : Constants.DELETE),
+            child: Text(Constants.DELETE),
           );
         },
       ),
@@ -221,26 +353,21 @@ class _SettingGridView extends State<SettingGridView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.all(8.0),
-        child: PlutoGrid(
-          columns: _buildColumns(context),
-          rows: _buildRows(),
-          configuration: const PlutoGridConfiguration(),
-          onLoaded: (PlutoGridOnLoadedEvent event) async {
-            stateManager = event.stateManager;
-            stateManager.setShowColumnFilter(true);
-          },
-          onChanged: (PlutoGridOnChangedEvent event) {
-            print("Row changed: ${event.row.cells}");
-          },
-          createFooter: (stateManager) {
-            stateManager.setPageSize(100, notify: false);
-            return PlutoPagination(stateManager);
-          },
-        ),
-      ),
+    return PlutoGrid(
+      columns: _buildColumns(context),
+      rows: _buildRows(),
+      configuration: const PlutoGridConfiguration(),
+      onLoaded: (PlutoGridOnLoadedEvent event) async {
+        stateManager = event.stateManager;
+        stateManager.setShowColumnFilter(true);
+      },
+      onChanged: (PlutoGridOnChangedEvent event) {
+        print("Row changed: ${event.row.cells}");
+      },
+      createFooter: (stateManager) {
+        stateManager.setPageSize(100, notify: false);
+        return PlutoPagination(stateManager);
+      },
     );
   }
 }

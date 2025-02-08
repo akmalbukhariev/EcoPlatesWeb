@@ -1,6 +1,4 @@
-import 'package:ecoplates_web/src/data/http_response/user_data_response.dart';
-
-import '../model/user_info.dart';
+import 'package:ecoplates_web/src/services/http_response/user_data_response.dart';
 
 class ResponseUserInfo{
   String? resultMsg;

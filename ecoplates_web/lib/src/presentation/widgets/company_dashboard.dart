@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
 import '../../constant/user_or_company_status.dart';
-import '../../data/data_provider/http_service_company.dart';
-import '../../data/http_response/company_data_response.dart';
-import '../../data/http_response/response_change_deletion_status.dart';
-import '../../data/http_response/response_change_user_status.dart';
-import '../../data/http_response/response_company_info.dart';
-import '../../data/model/change_user_deletion_status.dart';
-import '../../data/model/change_user_status.dart';
-import '../../data/model/pagination_info.dart';
-import 'AppAlertDialogYesNo.dart';
+import '../../model/change_user_deletion_status.dart';
+import '../../model/change_user_status.dart';
+import '../../model/pagination_info.dart';
+import '../../services/data_provider/http_service_company.dart';
+import '../../services/http_response/company_data_response.dart';
+import '../../services/http_response/response_change_deletion_status.dart';
+import '../../services/http_response/response_change_user_status.dart';
+import '../../services/http_response/response_company_info.dart';
+import 'app_alert_dialog_yesno.dart';
 import 'build_summary_card.dart';
 import 'loading_overlay_widget.dart';
 

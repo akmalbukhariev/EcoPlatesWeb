@@ -1,9 +1,6 @@
 import 'dart:js';
 import 'dart:js';
 
-import 'package:ecoplates_web/src/data/http_response/response_change_deletion_status.dart';
-import 'package:ecoplates_web/src/data/model/change_user_status.dart';
-import 'package:ecoplates_web/src/data/model/pagination_info.dart';
 import 'package:ecoplates_web/src/presentation/widgets/simple_account_menu.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +9,15 @@ import 'package:pluto_grid/pluto_grid.dart';
 
 import '../../constant/user_or_company_status.dart';
 import '../../constant/constants.dart';
-import '../../data/data_provider/http_service_user.dart';
-import '../../data/http_response/response_change_user_status.dart';
-import '../../data/http_response/response_user_info.dart';
-import '../../data/http_response/user_data_response.dart';
-import '../../data/model/change_user_deletion_status.dart';
-import 'AppAlertDialogYesNo.dart';
+import '../../model/change_user_deletion_status.dart';
+import '../../model/change_user_status.dart';
+import '../../model/pagination_info.dart';
+import '../../services/data_provider/http_service_user.dart';
+import '../../services/http_response/response_change_deletion_status.dart';
+import '../../services/http_response/response_change_user_status.dart';
+import '../../services/http_response/response_user_info.dart';
+import '../../services/http_response/user_data_response.dart';
+import 'app_alert_dialog_yesno.dart';
 import 'build_summary_card.dart';
 import 'loading_overlay_widget.dart';
 
@@ -406,26 +406,21 @@ class _UserGridView extends State<UserGridView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.all(8.0),
-        child: PlutoGrid(
-          columns: _buildColumns(context),
-          rows: _buildRows(),
-          configuration: const PlutoGridConfiguration(),
-          onLoaded: (PlutoGridOnLoadedEvent event) async {
-            stateManager = event.stateManager;
-            stateManager.setShowColumnFilter(true);
-          },
-          onChanged: (PlutoGridOnChangedEvent event) {
-            print("Row changed: ${event.row.cells}");
-          },
-          createFooter: (stateManager) {
-            stateManager.setPageSize(100, notify: false);
-            return PlutoPagination(stateManager);
-          },
-        ),
-      ),
+    return PlutoGrid(
+      columns: _buildColumns(context),
+      rows: _buildRows(),
+      configuration: const PlutoGridConfiguration(),
+      onLoaded: (PlutoGridOnLoadedEvent event) async {
+        stateManager = event.stateManager;
+        stateManager.setShowColumnFilter(true);
+      },
+      onChanged: (PlutoGridOnChangedEvent event) {
+        print("Row changed: ${event.row.cells}");
+      },
+      createFooter: (stateManager) {
+        stateManager.setPageSize(100, notify: false);
+        return PlutoPagination(stateManager);
+      },
     );
   }
 }

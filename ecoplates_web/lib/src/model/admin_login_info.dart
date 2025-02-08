@@ -1,15 +1,15 @@
 
-class AdminLoginAndRegisterInfo {
+class AdminLoginInfo {
   String? admin_id;
   String? password;
 
-  AdminLoginAndRegisterInfo({
+  AdminLoginInfo({
     required this.admin_id,
     required this.password,
   });
 
-  factory AdminLoginAndRegisterInfo.fromJson(Map<String, dynamic> json) {
-    return AdminLoginAndRegisterInfo(
+  factory AdminLoginInfo.fromJson(Map<String, dynamic> json) {
+    return AdminLoginInfo(
       admin_id: json['admin_id'] as String,
       password: json['password'] as String,
     );

@@ -1,5 +1,5 @@
 
-import '../model/user_info.dart';
+import '../../model/user_info.dart';
 
 class UserDataResponse {
   int? total;

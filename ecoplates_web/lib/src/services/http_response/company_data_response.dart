@@ -1,5 +1,5 @@
 
-import '../model/company_info.dart';
+import '../../model/company_info.dart';
 
 class CompanyDataResponse {
   int? total;

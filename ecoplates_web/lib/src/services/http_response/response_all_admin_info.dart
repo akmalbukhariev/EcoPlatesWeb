@@ -1,5 +1,5 @@
 
-import 'package:ecoplates_web/src/data/model/admin_info.dart';
+import '../../model/admin_info.dart';
 
 class ResponseAllAdminInfo{
   String? resultMsg;

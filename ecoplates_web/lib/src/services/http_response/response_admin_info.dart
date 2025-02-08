@@ -1,5 +1,5 @@
 
-import '../model/admin_info.dart';
+import '../../model/admin_info.dart';
 
 class ResponseAdminInfo{
   String? resultMsg;
