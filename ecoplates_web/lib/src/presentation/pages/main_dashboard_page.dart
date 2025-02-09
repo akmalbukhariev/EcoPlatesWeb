@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/login_page_cubit.dart';
-import '../../blocs/login_page_state.dart';
 import '../../blocs/main_page_cubit.dart';
 import '../../blocs/main_page_state.dart';
 import '../../constant/constants.dart';
@@ -45,14 +44,14 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                   // Left Menu Container
                   Container(
                     width: 200,
-                    color: const Color.fromRGBO(30, 60, 114, 1), // Blue background
+                    color: const Color.fromRGBO(30, 60, 114, 1),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // App Logo/Header
                         Container(
                           padding: const EdgeInsets.all(20),
-                          color: const Color.fromRGBO(25, 55, 100, 1), // Slightly darker blue
+                          color: const Color.fromRGBO(25, 55, 100, 1),
                           child: const Text(
                             Constants.ECOPLATES_ADMIN,
                             style: TextStyle(
@@ -87,8 +86,8 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(0, 50),
-                            backgroundColor: Colors.red,        // Set background color to red
-                            shape: RoundedRectangleBorder(      // Rectangle shape
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero,
                             ),
                           ),
@@ -107,7 +106,7 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                           },
                           child: const Text(
                             Constants.LOG_OUT,
-                            style: TextStyle(color: Colors.white),  // Optional: Set text color to white for contrast
+                            style: TextStyle(color: Colors.white),
                           ),
                         )
                       ],
@@ -116,14 +115,14 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                   // Main Content
                   Expanded(
                     child: Container(
-                      color: const Color.fromRGBO(249, 251, 252, 1), // Light background
+                      color: const Color.fromRGBO(249, 251, 252, 1),
                       child: _buildDashboard(),
                     ),
                   ),
                 ],
               ),
               if(state.isLoading)
-                LoadingOverlayWidget()
+                const LoadingOverlayWidget()
             ],
           );
         }
@@ -141,15 +140,15 @@ class _MainDashboardPage extends State<MainDashboardPage> {
         onClick();
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300), // Animation duration
-        curve: Curves.easeInOut, // Animation curve
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color.fromRGBO(20, 50, 100, 1) // Highlighted background
-              : Colors.transparent, // Default background
+              ? const Color.fromRGBO(20, 50, 100, 1)
+              : Colors.transparent,
           borderRadius: isSelected
-              ? BorderRadius.circular(0) // Rounded corners for the selected item
+              ? BorderRadius.circular(0)
               : BorderRadius.zero,
         ),
         child: Row(

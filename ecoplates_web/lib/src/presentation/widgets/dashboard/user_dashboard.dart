@@ -45,7 +45,7 @@ class _UserDashBoard extends State<UserDashBoard> {
     return BlocListener<MainPageCubit, MainPageState>(
       listener: (context, state){
         if(state.refreshWindow){
-          //do something
+          setState(() {});
         }
       },
       child: Padding(
@@ -123,8 +123,6 @@ class _UserDashBoard extends State<UserDashBoard> {
                   ),
                 ],
               ),
-              //if(isLoading!)
-              //const LoadingOverlayWidget()
             ],
           )
       ),
@@ -133,10 +131,6 @@ class _UserDashBoard extends State<UserDashBoard> {
 }
 
 class UserGridView extends StatefulWidget{
-  //final UserDataResponse? resultData;
-  //final VoidCallback onRefresh;
-
-  //const UserGridView({super.key, this.resultData, required this.onRefresh});
   const UserGridView({super.key});
 
   @override
@@ -328,6 +322,37 @@ class _UserGridView extends State<UserGridView> {
     ];
   }
 
+  Future<PlutoLazyPaginationResponse> fetch(PlutoLazyPaginationRequest request) async {
+    const pageSize = Constants.PAGE_SIZE;
+    final offset = (request.page - 1) * pageSize;
+
+    userCubit.setPageOffset(pageOffset: offset);
+    await userCubit.fetchUserInfo();
+
+    final users = userCubit.state.userData?.users ?? [];
+    final rows = users.map((user) {
+      return PlutoRow(cells: {
+        'col1': PlutoCell(value: user.userId?.toString() ?? ''),
+        'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
+        'col3': PlutoCell(value: user.firstName ?? 'N/A'),
+        'col4': PlutoCell(value: user.lastName ?? 'N/A'),
+        'col5': PlutoCell(value: user.status.value ?? 'Unknown'),
+        'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
+        'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
+        'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
+      });
+    }).toList() ?? [];
+
+    final totalRows = userCubit.state.userData?.total ?? 0;
+    final totalPage = (totalRows / pageSize).ceil();
+
+    return PlutoLazyPaginationResponse(
+      totalPage: totalPage,
+      rows: rows,
+    );
+  }
+
   @override
   void initState(){
     super.initState();
@@ -335,7 +360,7 @@ class _UserGridView extends State<UserGridView> {
     userCubit = context.read<MainPageCubit>();
   }
 
-  void refreshGrid() {
+  void refreshGrid(){
     if (userCubit.state.userData != null) {
       final newRows = _buildRows();
 
@@ -356,7 +381,7 @@ class _UserGridView extends State<UserGridView> {
       },
       child: PlutoGrid(
         columns: _buildColumns(context),
-        rows: _buildRows(),
+        rows: [],//_buildRows(),
         configuration: const PlutoGridConfiguration(),
         onLoaded: (PlutoGridOnLoadedEvent event) async {
           stateManager = event.stateManager;
@@ -365,10 +390,21 @@ class _UserGridView extends State<UserGridView> {
         onChanged: (PlutoGridOnChangedEvent event) {
           print("Row changed: ${event.row.cells}");
         },
-        createFooter: (stateManager) {
+        /*createFooter: (stateManager) {
           stateManager.setPageSize(100, notify: false);
           return PlutoPagination(stateManager);
         },
+        */
+          createFooter: (stateManager) {
+            return PlutoLazyPagination(
+              initialPage: 1,
+              initialFetch: true,
+              fetchWithSorting: true,
+              fetchWithFiltering: true,
+              fetch: fetch,
+              stateManager: stateManager,
+            );
+          }
       ),
     );
   }

@@ -11,4 +11,6 @@ class Constants{
   static const String ECOPLATES_ADMIN = 'Ecoplates Admin';
 
   static const String LOG_OUT = 'Log out';
+
+  static const int PAGE_SIZE = 4;
 }

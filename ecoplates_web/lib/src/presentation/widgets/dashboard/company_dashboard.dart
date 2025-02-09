@@ -1,10 +1,13 @@
 import 'dart:math';
 
+import 'package:ecoplates_web/src/blocs/main_page_state.dart';
 import 'package:ecoplates_web/src/constant/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
+import '../../../blocs/main_page_cubit.dart';
 import '../../../constant/user_or_company_status.dart';
 import '../../../model/change_user_deletion_status.dart';
 import '../../../model/change_user_status.dart';
@@ -27,133 +30,104 @@ class CompanyDashBoard extends StatefulWidget{
 
 class _CompanyDashBoard extends State<CompanyDashBoard>{
 
-  CompanyDataResponse? resultData;
-  bool? isLoading;
-
-  Future<void> refreshDashboard() async {
-    setState(() {
-      isLoading = true;
-    });
-    await fetchUserInfo();
-  }
-
-  Future<void> fetchUserInfo() async {
-    try {
-      Paginationinfo data = Paginationinfo(pageSize: 10, offset: 0);
-      ResponseCompanyInfo? response = await HttpServiceCompany.getUserInfo(
-          data: data);
-
-      setState(() {
-        isLoading = false;
-      });
-
-      if (response != null && response.resultData != null) {
-        setState(() {
-          resultData = response.resultData;
-        });
-      } else {
-        print('Failed to fetch user data: ${response?.resultMsg}');
-      }
-    } catch (e) {
-      print('Error fetching user data: $e');
-    }
-  }
+  late MainPageCubit companyCubit;
 
   @override
   void initState() {
     super.initState();
-    isLoading = true;
-    fetchUserInfo();
+
+    companyCubit = context.read<MainPageCubit>();
+    companyCubit.fetchCompanyInfo();
   }
 
   @override
   Widget build(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final availableWidth = constraints.maxWidth;
-                    final cardWidth = availableWidth > 800 ? 200.0 : (availableWidth / 2) - 16;
+    return BlocListener<MainPageCubit, MainPageState>(
+      listener: (context, state) {
+        setState(() {});
+      },
+      child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final availableWidth = constraints.maxWidth;
+                      final cardWidth = availableWidth > 800
+                          ? 200.0
+                          : (availableWidth / 2) - 16;
 
-                    return Wrap(
-                      spacing: 16.0,
-                      runSpacing: 16.0,
-                      children: [
-                        SizedBox(
-                          width: cardWidth,
-                          child: buildSummaryCard(
-                            title: "Companies",
-                            titleColor: Colors.blue,
-                            value: "${resultData?.total ?? 0}",
-                            percentage: "",
-                            percentageColor: Colors.transparent,
-                            description: "The number of companies",
+                      return Wrap(
+                        spacing: 16.0,
+                        runSpacing: 16.0,
+                        children: [
+                          SizedBox(
+                            width: cardWidth,
+                            child: buildSummaryCard(
+                              title: "Companies",
+                              titleColor: Colors.blue,
+                              value: "${companyCubit.state.companyData?.total ?? 0}",
+                              percentage: "",
+                              percentageColor: Colors.transparent,
+                              description: "The number of companies",
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          width: cardWidth,
-                          child: buildSummaryCard(
-                            title: "Active Companies",
-                            titleColor: Colors.green,
-                            value: "${resultData?.activeUsers ?? 0}",
-                            percentage: resultData?.activePercentage ?? "0%",
-                            percentageColor: Colors.green,
-                            description: "The number of active companies",
+                          SizedBox(
+                            width: cardWidth,
+                            child: buildSummaryCard(
+                              title: "Active Companies",
+                              titleColor: Colors.green,
+                              value: "${companyCubit.state.companyData?.activeUsers ?? 0}",
+                              percentage: companyCubit.state.companyData?.activePercentage ?? "0%",
+                              percentageColor: Colors.green,
+                              description: "The number of active companies",
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          width: cardWidth,
-                          child: buildSummaryCard(
-                            title: "Inactive Companies",
-                            titleColor: Colors.orange,
-                            value: "${resultData?.inactiveUsers ?? 0}",
-                            percentage: resultData?.inactivePercentage ?? "0%",
-                            percentageColor: Colors.orange,
-                            description: "The number of inactive companies",
+                          SizedBox(
+                            width: cardWidth,
+                            child: buildSummaryCard(
+                              title: "Inactive Companies",
+                              titleColor: Colors.orange,
+                              value: "${companyCubit.state.companyData?.inactiveUsers ?? 0}",
+                              percentage: companyCubit.state.companyData?.inactivePercentage ??
+                                  "0%",
+                              percentageColor: Colors.orange,
+                              description: "The number of inactive companies",
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          width: cardWidth,
-                          child: buildSummaryCard(
-                            title: "Banned Companies",
-                            titleColor: Colors.red,
-                            value: "${resultData?.bannedUsers ?? 0}",
-                            percentage: resultData?.bannedPercentage ?? "0%",
-                            percentageColor: Colors.red,
-                            description: "The number of banned companies",
+                          SizedBox(
+                            width: cardWidth,
+                            child: buildSummaryCard(
+                              title: "Banned Companies",
+                              titleColor: Colors.red,
+                              value: "${companyCubit.state.companyData?.bannedUsers ?? 0}",
+                              percentage: companyCubit.state.companyData?.bannedPercentage ?? "0%",
+                              percentageColor: Colors.red,
+                              description: "The number of banned companies",
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                Expanded(
-                  child: CompanyGridView(
-                    resultData: resultData,
-                    onRefresh: refreshDashboard,
+                        ],
+                      );
+                    },
                   ),
-                ),
-              ],
-            ),
-            if(isLoading!)
-              const LoadingOverlayWidget()
-          ],
-        )
-      );
+                  const SizedBox(height: 16.0),
+                  Expanded(
+                    child: CompanyGridView(),
+                  ),
+                ],
+              ),
+            ],
+          )
+      ),
+    );
   }
 }
 
 class CompanyGridView extends StatefulWidget{
-  final CompanyDataResponse? resultData;
-  final VoidCallback onRefresh;
-
-  const CompanyGridView({super.key, this.resultData, required this.onRefresh});
+  const CompanyGridView({super.key});
 
   @override
   State<CompanyGridView> createState()  => _CompanyGridView();
@@ -162,8 +136,10 @@ class CompanyGridView extends StatefulWidget{
 class _CompanyGridView extends State<CompanyGridView> {
   late PlutoGridStateManager stateManager;
 
+  late MainPageCubit companyCubit;
+
   List<PlutoRow> _buildRows() {
-    final companies = widget.resultData?.users ?? [];
+    final companies = companyCubit.state.companyData?.users ?? [];
 
     return companies.map((item) {
       return PlutoRow(cells: {
@@ -176,13 +152,15 @@ class _CompanyGridView extends State<CompanyGridView> {
         'col7': PlutoCell(value: item.status.value),
         'col8': PlutoCell(value: item.formatDateTime(item.updatedAt)),
         'col9': PlutoCell(value: item.formatDateTime(item.createdAt)),
-        'col10': PlutoCell(value: item.isBanned() ? Constants.BANNED : Constants.BAN),
-        'col11': PlutoCell(value: item.deleted == true ?  Constants.DELETED : Constants.DELETE),
+        'col10': PlutoCell(
+            value: item.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col11': PlutoCell(
+            value: item.deleted == true ? Constants.DELETED : Constants.DELETE),
       });
     }).toList();
   }
 
-  List<PlutoColumn> _buildColumns(BuildContext context){
+  List<PlutoColumn> _buildColumns(BuildContext context) {
     return [
       PlutoColumn(
         title: 'Id',
@@ -288,38 +266,22 @@ class _CompanyGridView extends State<CompanyGridView> {
           return ElevatedButton(
             onPressed: isDeleted ? null :
                 () async {
-                  final bool? confirm = await AppAlertDialogYesNo.showAlert(
-                    context: context,
-                    title: "Confirmation",
-                    content: confirmationText,
-                    yesText: "Confirm",
-                    noText: "Cancel",
-                  );
+              final bool? confirm = await AppAlertDialogYesNo.showAlert(
+                context: context,
+                title: "Confirmation",
+                content: confirmationText,
+                yesText: "Confirm",
+                noText: "Cancel",
+              );
 
-                  if (confirm != true) return;
+              if (confirm != true) return;
 
-                  try {
-                    final newStatus = isBanned
-                        ? UserOrCompanyStatus.INACTIVE
-                        : UserOrCompanyStatus.BANNED;
-                    ChangeUserStatus data = ChangeUserStatus(
-                      phoneNumber: phone,
-                      status: newStatus,
-                    );
+              final newStatus = isBanned
+                  ? UserOrCompanyStatus.INACTIVE
+                  : UserOrCompanyStatus.BANNED;
 
-                    ResponseChangeUserStatus? response = await HttpServiceCompany
-                        .changeUserStatus(data: data);
-
-                    if (response != null) {
-                      widget.onRefresh(); // Trigger the refresh
-                    } else {
-                      print(
-                          'Failed to update company status: ${response?.resultMsg}');
-                    }
-                  } catch (e) {
-                    print('Error updating company status: $e');
-                  }
-
+              await companyCubit.changeCompanyStatus(
+                  phone: phone, status: newStatus);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isBanned ? Colors.red : Colors.green,
@@ -350,7 +312,6 @@ class _CompanyGridView extends State<CompanyGridView> {
 
           return ElevatedButton(
             onPressed: () async {
-
               final bool? confirm = await AppAlertDialogYesNo.showAlert(
                 context: context,
                 title: "Confirmation",
@@ -361,24 +322,8 @@ class _CompanyGridView extends State<CompanyGridView> {
 
               if (confirm != true) return;
 
-              try {
-                ChangeUserDeletionStatus data = ChangeUserDeletionStatus(
-                  phoneNumber: phone,
-                  deleted: !isDeleted,
-                );
-
-                ResponseChangeUserDeletionStatus? response = await HttpServiceCompany
-                    .changeUserDeletionStatus(data: data);
-
-                if (response != null) {
-                  widget.onRefresh();
-                } else {
-                  print('Failed to update company deletion status: ${response
-                      ?.resultMsg}');
-                }
-              } catch (e) {
-                print('Error updating company deletion status: $e');
-              }
+              await companyCubit.changeCompanyDeletionStatus(
+                  phone: phone, deleted: !isDeleted);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
@@ -391,13 +336,51 @@ class _CompanyGridView extends State<CompanyGridView> {
     ];
   }
 
-  @override
-  void initState(){
-    super.initState();
+  Future<PlutoLazyPaginationResponse> fetch(PlutoLazyPaginationRequest request) async {
+    const pageSize = Constants.PAGE_SIZE;
+    final offset = (request.page - 1) * pageSize;
+
+    companyCubit.setPageOffset(pageOffset: offset);
+    await companyCubit.fetchCompanyInfo();
+
+    final companies = companyCubit.state.companyData?.users ?? [];
+
+    final rows = companies.map((item) {
+      return PlutoRow(cells: {
+        'col1': PlutoCell(value: item.companyId.toString()),
+        'col2': PlutoCell(value: item.companyName ?? ''),
+        'col3': PlutoCell(value: item.phoneNumber ?? ''),
+        'col4': PlutoCell(value: item.logoUrl ?? ''),
+        'col5': PlutoCell(value: item.rating ?? ''),
+        'col6': PlutoCell(value: item.workingHours ?? ''),
+        'col7': PlutoCell(value: item.status.value),
+        'col8': PlutoCell(value: item.formatDateTime(item.updatedAt)),
+        'col9': PlutoCell(value: item.formatDateTime(item.createdAt)),
+        'col10': PlutoCell(
+            value: item.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col11': PlutoCell(
+            value: item.deleted == true ? Constants.DELETED : Constants.DELETE),
+      });
+    }).toList() ?? [];
+
+    final totalRows = companyCubit.state.companyData?.total ?? 0;
+    final totalPage = (totalRows / pageSize).ceil();
+
+    return PlutoLazyPaginationResponse(
+      totalPage: totalPage,
+      rows: rows,
+    );
   }
 
-  void _refreshGrid() {
-    if (widget.resultData != null) {
+  @override
+  void initState() {
+    super.initState();
+
+    companyCubit = context.read<MainPageCubit>();
+  }
+
+  void refreshGrid() {
+    if (companyCubit.state.companyData != null) {
       final newRows = _buildRows();
 
       stateManager.removeAllRows();
@@ -408,31 +391,39 @@ class _CompanyGridView extends State<CompanyGridView> {
   }
 
   @override
-  void didUpdateWidget(CompanyGridView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.resultData != widget.resultData) {
-      _refreshGrid();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return PlutoGrid(
-      columns: _buildColumns(context),
-      rows: _buildRows(),
-      configuration: const PlutoGridConfiguration(),
-      onLoaded: (PlutoGridOnLoadedEvent event) {
-        stateManager = event.stateManager;
-        stateManager.setShowColumnFilter(true);
-      },
-      onChanged: (PlutoGridOnChangedEvent event) {
-        print("Row changed: ${event.row.cells}");
-      },
-      createFooter: (stateManager) {
-        stateManager.setPageSize(100, notify: false);
-        return PlutoPagination(stateManager);
-      },
+    return BlocListener<MainPageCubit, MainPageState>(
+        listener: (context, state) {
+          if (state.refreshWindow) {
+            refreshGrid();
+          }
+        },
+        child: PlutoGrid(
+          columns: _buildColumns(context),
+          rows: [],//_buildRows(),
+          configuration: const PlutoGridConfiguration(),
+          onLoaded: (PlutoGridOnLoadedEvent event) {
+            stateManager = event.stateManager;
+            stateManager.setShowColumnFilter(true);
+          },
+          onChanged: (PlutoGridOnChangedEvent event) {
+            print("Row changed: ${event.row.cells}");
+          },
+          /*createFooter: (stateManager) {
+            stateManager.setPageSize(100, notify: false);
+            return PlutoPagination(stateManager);
+          },*/
+            createFooter: (stateManager) {
+              return PlutoLazyPagination(
+                initialPage: 1,
+                initialFetch: true,
+                fetchWithSorting: true,
+                fetchWithFiltering: true,
+                fetch: fetch,
+                stateManager: stateManager,
+              );
+            }
+        )
     );
   }
 }
