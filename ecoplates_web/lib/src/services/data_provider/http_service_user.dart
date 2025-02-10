@@ -9,7 +9,8 @@ import '../http_response/response_user_info.dart';
 import 'package:http/http.dart' as http;
 
 class HttpServiceUser{
-  static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/user/";
+  //static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/user/";
+  static String SERVER_URL = "http://176.221.28.246:8088/ecoplatesadmin/api/v1/user/";
   static String GET_PAGINATED_USER = "${SERVER_URL}getPaginatedUsers";
   static String CHANGE_USER_STATUS = "${SERVER_URL}changeUserStatus";
   static String CHANGE_USER_DELETION_STATUS = "${SERVER_URL}changeUserDeletionStatus";

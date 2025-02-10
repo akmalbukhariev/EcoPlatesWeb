@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:ecoplates_web/src/services/data_provider/http_service_company.dart';
@@ -14,7 +13,8 @@ import '../http_response/response_all_admin_info.dart';
 import '../http_response/response_info.dart';
 
 class HttpServiceAdmin{
-  static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/admin/";
+  //static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/admin/";
+  static String SERVER_URL = "http://176.221.28.246:8088/ecoplatesadmin/api/v1/admin/";
   static String LOGIN = "${SERVER_URL}login";
   static String GET_ALL_ADMINS = "${SERVER_URL}getAllAdmins";
   static String GET_ADMIN_BY_ID = "${SERVER_URL}getAdminById/";
