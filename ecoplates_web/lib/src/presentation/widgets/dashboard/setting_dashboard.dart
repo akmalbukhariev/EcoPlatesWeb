@@ -34,7 +34,7 @@ class _SettingDashBoard extends State<SettingDashBoard> {
     final TextEditingController adminIdController = TextEditingController();
     final TextEditingController passwordController = TextEditingController();
     final TextEditingController confirmPasswordController = TextEditingController();
-    String selectedRole = Constants.ADMIN;
+    String selectedRole = Constants.ADMIN_SUPER;
 
     showDialog(
       context: context,
@@ -55,7 +55,7 @@ class _SettingDashBoard extends State<SettingDashBoard> {
                           ),
                         ),
                         const SizedBox(height: 16.0),
-                        DropdownButtonFormField<String>(
+                        /*DropdownButtonFormField<String>(
                           value: selectedRole,
                           onChanged: (String? newValue) {
                             if (newValue != null) {
@@ -71,7 +71,7 @@ class _SettingDashBoard extends State<SettingDashBoard> {
                           decoration: const InputDecoration(
                             labelText: 'Admin Role',
                           ),
-                        ),
+                        ),*/
                         const SizedBox(height: 16.0),
                         TextField(
                           controller: passwordController,

@@ -1,16 +1,15 @@
 import 'package:ecoplates_web/src/blocs/login_page_cubit.dart';
 import 'package:ecoplates_web/src/constant/admin_role.dart';
 import 'package:ecoplates_web/src/constant/constants.dart';
-import 'package:ecoplates_web/src/presentation/widgets/clean_button_text_field.dart';
 import 'package:ecoplates_web/src/presentation/widgets/loading_overlay_widget.dart';
 import 'package:ecoplates_web/src/presentation/widgets/show_snack_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/login_page_state.dart';
 import '../../constant/result.dart';
-import 'main_dashboard_page.dart';
 
 class AdminOptionPage extends StatefulWidget{
   const AdminOptionPage({super.key});
@@ -22,6 +21,9 @@ class AdminOptionPage extends StatefulWidget{
 class _AdminOptionPage extends State<AdminOptionPage> {
   late final TextEditingController txtBoxId;
   late final TextEditingController txtBoxPassword;
+  late final FocusNode idFocusNode;
+  late final FocusNode passwordFocusNode;
+  late final FocusNode loginButtonFocusNode;
 
   late LoginPageCubit cubit;
 
@@ -30,16 +32,40 @@ class _AdminOptionPage extends State<AdminOptionPage> {
     super.initState();
     txtBoxId = TextEditingController();
     txtBoxPassword = TextEditingController();
+    idFocusNode = FocusNode();
+    passwordFocusNode = FocusNode();
+    loginButtonFocusNode = FocusNode();
 
     cubit = context.read<LoginPageCubit>();
   }
 
   @override
   void dispose() {
-    // Dispose of controllers when the widget is destroyed
     txtBoxId.dispose();
     txtBoxPassword.dispose();
+    idFocusNode.dispose();
+    passwordFocusNode.dispose();
+    loginButtonFocusNode.dispose();
+
     super.dispose();
+  }
+
+  void handleLogin() async {
+    if (cubit.state.adminRole == AdminRole.ADMIN && txtBoxId.text.toUpperCase() != Constants.ADMIN) {
+      ShowSnackBar(context: context, message: "The admin ID must be \"admin\"");
+      return;
+    } else if (cubit.state.adminRole == AdminRole.SUPER_ADMIN && txtBoxId.text.toUpperCase() == Constants.ADMIN) {
+      ShowSnackBar(context: context, message: "Please choose the admin role as the admin.");
+      return;
+    }
+
+    String msg = await cubit.login(adminId: txtBoxId.text, password: txtBoxPassword.text);
+
+    if (msg == Result.SUCCESS.message) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
+      ShowSnackBar(context: context, message: msg);
+    }
   }
 
   @override
@@ -49,7 +75,7 @@ class _AdminOptionPage extends State<AdminOptionPage> {
         builder: (context, state){
           return SafeArea(
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -59,28 +85,34 @@ class _AdminOptionPage extends State<AdminOptionPage> {
                   ],
                 ),
               ),
-              child: Stack(
-                children: [
-                  AnimatedPositioned(
-                    left: state.showLoginWindow ? -MediaQuery.of(context).size.width : 0,
-                    top: 0,
-                    right: state.showLoginWindow ? MediaQuery.of(context).size.width : 0,
-                    bottom: 0,
-                    duration: const Duration(milliseconds: 500),
-                    child: optionButtons(),
+              child: KeyboardListener(
+                focusNode: FocusNode(),
+                child: FocusTraversalGroup(
+                  policy: WidgetOrderTraversalPolicy(),
+                  child: Stack(
+                    children: [
+                      AnimatedPositioned(
+                        left: state.showLoginWindow ? -MediaQuery.of(context).size.width : 0,
+                        top: 0,
+                        right: state.showLoginWindow ? MediaQuery.of(context).size.width : 0,
+                        bottom: 0,
+                        duration: const Duration(milliseconds: 500),
+                        child: optionButtons(),
+                      ),
+                      AnimatedPositioned(
+                        left: state.showLoginWindow ? 0 : MediaQuery.of(context).size.width,
+                        top: 0,
+                        right: state.showLoginWindow ? 0 : -MediaQuery.of(context).size.width,
+                        bottom: 0,
+                        duration: const Duration(milliseconds: 500),
+                        child: loginWindow(),
+                      ),
+                      if(state.isLoading)
+                        const LoadingOverlayWidget()
+                    ],
                   ),
-                  AnimatedPositioned(
-                    left: state.showLoginWindow ? 0 : MediaQuery.of(context).size.width,
-                    top: 0,
-                    right: state.showLoginWindow ? 0 : -MediaQuery.of(context).size.width,
-                    bottom: 0,
-                    duration: const Duration(milliseconds: 500),
-                    child: loginWindow(),
-                  ),
-                  if(state.isLoading)
-                    const LoadingOverlayWidget()
-                ],
-              ),
+                ),
+              )
             ),
           );
         }
@@ -158,6 +190,9 @@ class _AdminOptionPage extends State<AdminOptionPage> {
                   children: [
                     TextField(
                       controller: txtBoxId,
+                      focusNode: idFocusNode,
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (value) => FocusScope.of(context).requestFocus(passwordFocusNode),
                       decoration: const InputDecoration(
                         hintText: "Enter the id",
                         border: InputBorder.none,
@@ -182,6 +217,9 @@ class _AdminOptionPage extends State<AdminOptionPage> {
                 padding: const EdgeInsets.only(left: 10),
                 child: TextField(
                   controller: txtBoxPassword,
+                  focusNode: passwordFocusNode,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (value) => handleLogin(),
                   decoration: const InputDecoration(
                     hintText: "Enter the password",
                     border: InputBorder.none,
@@ -195,27 +233,7 @@ class _AdminOptionPage extends State<AdminOptionPage> {
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(200, 50),
               ),
-              onPressed: () async {
-                if(cubit.state.adminRole == AdminRole.ADMIN && txtBoxId.text.toUpperCase() != Constants.ADMIN){
-                  ShowSnackBar(context: context, message: "The admin ID must be \"admin\"");
-                  return;
-                }
-                else if(cubit.state.adminRole == AdminRole.SUPER_ADMIN && txtBoxId.text.toUpperCase() == Constants.ADMIN){
-                  ShowSnackBar(context: context, message: "Please choose the admin role as the admin.");
-                  return;
-                }
-
-                print(cubit.state.adminRole);
-                print(txtBoxId.text.toUpperCase());
-
-                String msg = await cubit.login(adminId: txtBoxId.text, password: txtBoxPassword.text);
-
-                if (msg == Result.SUCCESS.message) {
-                  Navigator.pushReplacementNamed(context, '/dashboard');
-                } else {
-                  ShowSnackBar(context: context, message: msg);
-                }
-              },
+              onPressed: handleLogin,
               child: const Text("Login"),
             ),
             const SizedBox(height: 20),
