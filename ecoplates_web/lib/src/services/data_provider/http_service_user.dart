@@ -7,22 +7,26 @@ import '../http_response/response_change_deletion_status.dart';
 import '../http_response/response_change_user_status.dart';
 import '../http_response/response_user_info.dart';
 import 'package:http/http.dart' as http;
-
+import 'dart:html' as html;
 class HttpServiceUser{
-  //static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/user/";
-  static String SERVER_URL = "http://176.221.28.246:8088/ecoplatesadmin/api/v1/user/";
-  static String GET_PAGINATED_USER = "${SERVER_URL}getPaginatedUsers";
-  static String CHANGE_USER_STATUS = "${SERVER_URL}changeUserStatus";
-  static String CHANGE_USER_DELETION_STATUS = "${SERVER_URL}changeUserDeletionStatus";
+  //static String SERVER_URL = "http://localhost:8088/ecoplatesadmin/api/v1/user/"; //for the windows server
+  //static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/user/"; //for the local server
+  final String SERVER_URL;
+  String get GET_PAGINATED_USER => "${SERVER_URL}getPaginatedUsers";
+  String get CHANGE_USER_STATUS => "${SERVER_URL}changeUserStatus";
+  String get CHANGE_USER_DELETION_STATUS => "${SERVER_URL}changeUserDeletionStatus";
 
-  static String? TOKEN;
-  //static String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOIiwiZXhwIjoxNzcwMjU2NjM0fQ.YP5nae5N1BNx5AZGjkhXoEe1QKKnXRpk8M4K1_WT1_k";
+  String? TOKEN;
 
-  static void setToken(String token) {
+  HttpServiceUser({
+    this.SERVER_URL = "http://176.221.28.246:8088/ecoplatesadmin/api/v1/user/",
+  });
+
+  void setToken(String token) {
     TOKEN = token;
   }
 
-  static Map<String, String> getHeaders() {
+  Map<String, String> getHeaders() {
     return {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -30,10 +34,9 @@ class HttpServiceUser{
     };
   }
 
-  static Future<ResponseUserInfo?> getUserInfo({required Paginationinfo? data}) async {
+  Future<ResponseUserInfo?> getUserInfo({required Paginationinfo? data}) async {
 
     try {
-
       var request = http.Request('POST', Uri.parse(GET_PAGINATED_USER));
       request.body = json.encode(data?.toJson());
       request.headers.addAll(getHeaders());
@@ -55,7 +58,7 @@ class HttpServiceUser{
     return null;
   }
 
-  static Future<ResponseChangeUserStatus?> changeUserStatus({required ChangeUserStatus? data}) async {
+  Future<ResponseChangeUserStatus?> changeUserStatus({required ChangeUserStatus? data}) async {
 
     try {
 
@@ -80,7 +83,7 @@ class HttpServiceUser{
     return null;
   }
 
-  static Future<ResponseChangeUserDeletionStatus?> changeUserDeletionStatus({required ChangeUserDeletionStatus? data}) async {
+  Future<ResponseChangeUserDeletionStatus?> changeUserDeletionStatus({required ChangeUserDeletionStatus? data}) async {
 
     try {
 

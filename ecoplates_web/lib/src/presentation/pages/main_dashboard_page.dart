@@ -1,5 +1,7 @@
 import 'package:ecoplates_web/src/constant/admin_role.dart';
 import 'package:ecoplates_web/src/presentation/widgets/loading_overlay_widget.dart';
+import 'package:ecoplates_web/src/services/data_provider/http_service_admin.dart';
+import 'package:ecoplates_web/src/utils/auth_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,10 +10,13 @@ import '../../blocs/login_page_cubit.dart';
 import '../../blocs/main_page_cubit.dart';
 import '../../blocs/main_page_state.dart';
 import '../../constant/constants.dart';
+import '../../services/data_provider/http_service_company.dart';
+import '../../services/data_provider/http_service_user.dart';
 import '../widgets/app_alert_dialog_yesno.dart';
 import '../widgets/dashboard/company_dashboard.dart';
 import '../widgets/dashboard/setting_dashboard.dart';
 import '../widgets/dashboard/user_dashboard.dart';
+import 'dart:html' as html;
 
 class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
@@ -24,16 +29,44 @@ class _MainDashboardPage extends State<MainDashboardPage> {
   String selectedMenu = Constants.USER;
 
   late LoginPageCubit loginCubit;
+  late AdminRole savedRole = AdminRole.ADMIN;
 
   @override
   void initState() {
     super.initState();
 
     loginCubit = context.read<LoginPageCubit>();
+    initializeToken();
+    initializeRole();
+  }
+
+  void initializeToken() async {
+    final token = await AuthStorage.getToken();
+    if (token != null) {
+      context.read<HttpServiceAdmin>().setToken(token);
+      context.read<HttpServiceUser>().setToken(token);
+      context.read<HttpServiceCompany>().setToken(token);
+    } else {
+      print('No token found');
+    }
+
+    html.window.console.log('AuthStorage.getToken() $token');
+    String? strToken = loginCubit.getToken();
+    html.window.console.log('loginCubit.getToken() $strToken');
+  }
+
+  void initializeRole() async {
+    final role = await AuthStorage.getRole();
+    if (role != null) {
+      savedRole = role;
+    } else {
+      print('No role found');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: BlocBuilder<MainPageCubit, MainPageState>(
         builder: (context, state){
@@ -63,23 +96,23 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                         ),
                         const SizedBox(height: 20),
                         // Menu Items
-                        _buildMenuItem(Constants.USER, Icons.person, (){
+                        buildMenuItem(Constants.USER, Icons.person, (){
                           setState(() {
                             selectedMenu = Constants.USER;
                           });
                         }),
-                        _buildMenuItem(Constants.COMPANY, Icons.business, (){
+                        buildMenuItem(Constants.COMPANY, Icons.business, (){
                           setState(() {
                             selectedMenu = Constants.COMPANY;
                           });
                         }),
-                        if(loginCubit.state.adminRole == AdminRole.ADMIN)
-                          _buildMenuItem(Constants.SETTINGS, Icons.settings, (){
+                        if(loginCubit.state.adminRole == AdminRole.ADMIN || savedRole == AdminRole.ADMIN)
+                          buildMenuItem(Constants.SETTINGS, Icons.settings, (){
                             setState(() {
                               selectedMenu = Constants.SETTINGS;
                             });
                           }),
-                        Expanded(
+                        const Expanded(
                             child: SizedBox()
                         ),
                         //Log out button
@@ -101,6 +134,7 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                             );
 
                             if (confirm != true) return;
+                            await AuthStorage.saveToken("");
 
                             Navigator.pushReplacementNamed(context, '/');
                           },
@@ -116,7 +150,7 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                   Expanded(
                     child: Container(
                       color: const Color.fromRGBO(249, 251, 252, 1),
-                      child: _buildDashboard(),
+                      child: buildDashboard(),
                     ),
                   ),
                 ],
@@ -130,7 +164,7 @@ class _MainDashboardPage extends State<MainDashboardPage> {
     );
   }
 
-  Widget _buildMenuItem(String title, IconData icon, VoidCallback onClick) {
+  Widget buildMenuItem(String title, IconData icon, VoidCallback onClick) {
     bool isSelected = selectedMenu == title;
     return GestureDetector(
       onTap: () {
@@ -171,7 +205,7 @@ class _MainDashboardPage extends State<MainDashboardPage> {
     );
   }
 
-  Widget _buildDashboard() {
+  Widget buildDashboard() {
     if (selectedMenu == Constants.USER) {
       return const UserDashBoard();
     } else if (selectedMenu == Constants.COMPANY) {

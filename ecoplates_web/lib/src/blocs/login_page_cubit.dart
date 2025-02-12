@@ -4,16 +4,20 @@ import 'package:ecoplates_web/src/constant/admin_role.dart';
 import 'package:ecoplates_web/src/constant/result.dart';
 import 'package:ecoplates_web/src/model/admin_register_info.dart';
 import 'package:ecoplates_web/src/services/data_provider/http_service_admin.dart';
+import 'package:ecoplates_web/src/utils/auth_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../model/admin_login_info.dart';
 import '../services/http_response/response_admin_login_info.dart';
 
 class LoginPageCubit extends Cubit<LoginPageState>{
-   LoginPageCubit() : super(LoginPageState());
+   final HttpServiceAdmin httpServiceAdmin;
+
+   LoginPageCubit({required this.httpServiceAdmin}) : super(LoginPageState());
 
    void setAdminRole({required AdminRole adminRole}) {
       emit(state.compyWith(adminRole: adminRole));
+      AuthStorage.saveRole(adminRole);
    }
 
    void setShowLoginWindow({required bool show}) {
@@ -22,6 +26,10 @@ class LoginPageCubit extends Cubit<LoginPageState>{
 
    void setShowLoading({required bool show}){
       emit(state.compyWith(isLoading: show));
+   }
+
+   String? getToken() {
+      return httpServiceAdmin.getToken();
    }
 
    Future<String> login({required String adminId, String? password}) async {
@@ -41,7 +49,7 @@ class LoginPageCubit extends Cubit<LoginPageState>{
             password: password,
          );
 
-         ResponseAdminLoginInfo? response = await HttpServiceAdmin.login(data: data);
+         ResponseAdminLoginInfo? response = await httpServiceAdmin.login(data: data);
 
          if (response != null && response.resultCode == Result.SUCCESS.codeAsString) {
             return response.resultMsg ?? "Login successful!";

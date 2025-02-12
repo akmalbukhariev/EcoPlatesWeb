@@ -13,24 +13,28 @@ import '../http_response/response_all_admin_info.dart';
 import '../http_response/response_info.dart';
 
 class HttpServiceAdmin{
-  //static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/admin/";
-  static String SERVER_URL = "http://176.221.28.246:8088/ecoplatesadmin/api/v1/admin/";
-  static String LOGIN = "${SERVER_URL}login";
-  static String GET_ALL_ADMINS = "${SERVER_URL}getAllAdmins";
-  static String GET_ADMIN_BY_ID = "${SERVER_URL}getAdminById/";
-  static String REGISTER_ADMIN = "${SERVER_URL}register";
-  static String DELETE_ADMIN_BY_ID = "${SERVER_URL}deleteAdminById/";
+  //static String SERVER_URL = "http://localhost:8088/ecoplatesadmin/api/v1/admin/"; //for the windows server
+  //static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/admin/"; //for the local server
+  final String SERVER_URL;
+  String get LOGIN => "${SERVER_URL}login";
+  String get GET_ALL_ADMINS => "${SERVER_URL}getAllAdmins";
+  String get GET_ADMIN_BY_ID => "${SERVER_URL}getAdminById/";
+  String get REGISTER_ADMIN => "${SERVER_URL}register";
+  String get DELETE_ADMIN_BY_ID => "${SERVER_URL}deleteAdminById/";
 
-  static String? TOKEN;
-  //static String TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOIiwiZXhwIjoxNzcwMjU2NjM0fQ.YP5nae5N1BNx5AZGjkhXoEe1QKKnXRpk8M4K1_WT1_k";
+  String? TOKEN;
 
-  static void setToken(String token) {
+  HttpServiceAdmin({
+    this.SERVER_URL = "http://176.221.28.246:8088/ecoplatesadmin/api/v1/admin/",
+  });
+
+  String? getToken() => TOKEN;
+
+  void setToken(String token) {
     TOKEN = token;
-    HttpServiceUser.setToken(token);
-    HttpServiceCompany.setToken(token);
   }
 
-  static Map<String, String> getHeaders() {
+  Map<String, String> getHeaders() {
     return {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -38,17 +42,13 @@ class HttpServiceAdmin{
     };
   }
 
-  static Future<ResponseAdminLoginInfo?> login({required AdminLoginInfo? data}) async {
+  Future<ResponseAdminLoginInfo?> login({required AdminLoginInfo? data}) async {
 
     try {
-      var headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
 
       var request = http.Request('POST', Uri.parse(LOGIN));
       request.body = json.encode(data?.toJson());
-      request.headers.addAll(headers);
+      request.headers.addAll(getHeaders());
 
       http.StreamedResponse streamedResponse = await request.send();
 
@@ -75,7 +75,7 @@ class HttpServiceAdmin{
     return null;
   }
 
-  static Future<ResponseAllAdminInfo?> getAllAdmins() async {
+  Future<ResponseAllAdminInfo?> getAllAdmins() async {
 
     try {
 
@@ -99,7 +99,7 @@ class HttpServiceAdmin{
     return null;
   }
 
-  static Future<ResponseAdminInfo?> getAdminById({required String? adminId}) async {
+  Future<ResponseAdminInfo?> getAdminById({required String? adminId}) async {
 
     try {
 
@@ -123,7 +123,7 @@ class HttpServiceAdmin{
     return null;
   }
 
-  static Future<ResponseInfo?> register({required AdminRegisterInfo? data}) async {
+  Future<ResponseInfo?> register({required AdminRegisterInfo? data}) async {
 
     try {
 
@@ -148,7 +148,7 @@ class HttpServiceAdmin{
     return null;
   }
 
-  static Future<ResponseInfo?> deleteAdminById({required String? adminId}) async {
+  Future<ResponseInfo?> deleteAdminById({required String? adminId}) async {
 
     try {
 

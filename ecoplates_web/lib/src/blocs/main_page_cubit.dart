@@ -21,7 +21,15 @@ import '../services/http_response/response_info.dart';
 import '../services/http_response/response_user_info.dart';
 
 class MainPageCubit extends Cubit<MainPageState> {
-  MainPageCubit() : super(MainPageState());
+  final HttpServiceAdmin httpServiceAdmin;
+  final HttpServiceUser httpServiceUser;
+  final HttpServiceCompany httpServiceCompany;
+
+  MainPageCubit({
+    required this.httpServiceAdmin,
+    required this.httpServiceUser,
+    required this.httpServiceCompany,
+  }) : super(MainPageState());
 
   void setShowLoading({required bool show}) {
     emit(state.copyWith(isLoading: show));
@@ -35,7 +43,7 @@ class MainPageCubit extends Cubit<MainPageState> {
     setShowLoading(show: true);
     try {
       Paginationinfo data = Paginationinfo(pageSize: Constants.PAGE_SIZE, offset: state.pageOffset);
-      ResponseUserInfo? response = await HttpServiceUser.getUserInfo(
+      ResponseUserInfo? response = await httpServiceUser.getUserInfo(
           data: data);
 
       if (response != null && response.resultData != null) {
@@ -56,7 +64,7 @@ class MainPageCubit extends Cubit<MainPageState> {
 
     try{
       Paginationinfo data = Paginationinfo(pageSize: Constants.PAGE_SIZE, offset: state.pageOffset);
-      ResponseCompanyInfo? response = await HttpServiceCompany.getUserInfo(
+      ResponseCompanyInfo? response = await httpServiceCompany.getUserInfo(
           data: data);
 
       if (response != null && response.resultData != null) {
@@ -77,7 +85,7 @@ class MainPageCubit extends Cubit<MainPageState> {
     setShowLoading(show: true);
 
     try{
-      ResponseAllAdminInfo? response = await HttpServiceAdmin.getAllAdmins();
+      ResponseAllAdminInfo? response = await httpServiceAdmin.getAllAdmins();
 
       if (response != null && response.resultData != null) {
         emit(state.copyWith(isLoading: false, adminData: response.resultData,  refreshWindow: true));
@@ -102,7 +110,7 @@ class MainPageCubit extends Cubit<MainPageState> {
         status: status,
       );
 
-      ResponseChangeUserStatus? response = await HttpServiceUser
+      ResponseChangeUserStatus? response = await httpServiceUser
           .changeUserStatus(data: data);
 
       if (response != null) {
@@ -128,7 +136,7 @@ class MainPageCubit extends Cubit<MainPageState> {
         status: status,
       );
 
-      ResponseChangeUserStatus? response = await HttpServiceCompany
+      ResponseChangeUserStatus? response = await httpServiceCompany
           .changeUserStatus(data: data);
 
       if (response != null) {
@@ -154,7 +162,7 @@ class MainPageCubit extends Cubit<MainPageState> {
         deleted: deleted,
       );
 
-      ResponseChangeUserDeletionStatus? response = await HttpServiceUser
+      ResponseChangeUserDeletionStatus? response = await httpServiceUser
           .changeUserDeletionStatus(data: data);
 
       if (response != null) {
@@ -181,7 +189,7 @@ class MainPageCubit extends Cubit<MainPageState> {
         deleted: deleted,
       );
 
-      ResponseChangeUserDeletionStatus? response = await HttpServiceCompany
+      ResponseChangeUserDeletionStatus? response = await httpServiceCompany
           .changeUserDeletionStatus(data: data);
 
       if (response != null) {
@@ -208,7 +216,7 @@ class MainPageCubit extends Cubit<MainPageState> {
           password: password,
           admin_role: admin_role
       );
-      ResponseInfo? response = await HttpServiceAdmin.register(
+      ResponseInfo? response = await httpServiceAdmin.register(
           data: data);
       if (response != null) {
         if (response.resultCode == Result.SUCCESS.codeAsString) {
@@ -233,7 +241,7 @@ class MainPageCubit extends Cubit<MainPageState> {
     setShowLoading(show: true);
 
     try{
-      ResponseInfo? response = await HttpServiceAdmin.deleteAdminById(
+      ResponseInfo? response = await httpServiceAdmin.deleteAdminById(
           adminId: adminId);
 
       if (response != null){

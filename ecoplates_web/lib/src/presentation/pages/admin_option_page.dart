@@ -10,6 +10,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/login_page_state.dart';
 import '../../constant/result.dart';
+import '../../services/data_provider/http_service_company.dart';
+import '../../services/data_provider/http_service_user.dart';
+import '../../utils/auth_storage.dart';
 
 class AdminOptionPage extends StatefulWidget{
   const AdminOptionPage({super.key});
@@ -25,7 +28,7 @@ class _AdminOptionPage extends State<AdminOptionPage> {
   late final FocusNode passwordFocusNode;
   late final FocusNode loginButtonFocusNode;
 
-  late LoginPageCubit cubit;
+  late LoginPageCubit loginCubit;
 
   @override
   void initState() {
@@ -36,7 +39,7 @@ class _AdminOptionPage extends State<AdminOptionPage> {
     passwordFocusNode = FocusNode();
     loginButtonFocusNode = FocusNode();
 
-    cubit = context.read<LoginPageCubit>();
+    loginCubit = context.read<LoginPageCubit>();
   }
 
   @override
@@ -51,17 +54,23 @@ class _AdminOptionPage extends State<AdminOptionPage> {
   }
 
   void handleLogin() async {
-    if (cubit.state.adminRole == AdminRole.ADMIN && txtBoxId.text.toUpperCase() != Constants.ADMIN) {
+    if (loginCubit.state.adminRole == AdminRole.ADMIN && txtBoxId.text.toUpperCase() != Constants.ADMIN) {
       ShowSnackBar(context: context, message: "The admin ID must be \"admin\"");
       return;
-    } else if (cubit.state.adminRole == AdminRole.SUPER_ADMIN && txtBoxId.text.toUpperCase() == Constants.ADMIN) {
+    } else if (loginCubit.state.adminRole == AdminRole.SUPER_ADMIN && txtBoxId.text.toUpperCase() == Constants.ADMIN) {
       ShowSnackBar(context: context, message: "Please choose the admin role as the admin.");
       return;
     }
 
-    String msg = await cubit.login(adminId: txtBoxId.text, password: txtBoxPassword.text);
+    String msg = await loginCubit.login(adminId: txtBoxId.text, password: txtBoxPassword.text);
 
     if (msg == Result.SUCCESS.message) {
+      final token = loginCubit.getToken();
+      AuthStorage.saveToken(token as String);
+
+      context.read<HttpServiceUser>().setToken(token);
+      context.read<HttpServiceCompany>().setToken(token);
+
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
       ShowSnackBar(context: context, message: msg);
@@ -131,8 +140,8 @@ class _AdminOptionPage extends State<AdminOptionPage> {
           onPressed: () {
             txtBoxId.text = "";
             txtBoxPassword.text = "";
-            cubit.setShowLoginWindow(show: true);
-            cubit.setAdminRole(adminRole: AdminRole.ADMIN);
+            loginCubit.setShowLoginWindow(show: true);
+            loginCubit.setAdminRole(adminRole: AdminRole.ADMIN);
           },
           child: const Text("Admin"),
         ),
@@ -144,8 +153,8 @@ class _AdminOptionPage extends State<AdminOptionPage> {
           onPressed: () {
             txtBoxId.text = "";
             txtBoxPassword.text = "";
-            cubit.setShowLoginWindow(show: true);
-            cubit.setAdminRole(adminRole: AdminRole.SUPER_ADMIN);
+            loginCubit.setShowLoginWindow(show: true);
+            loginCubit.setAdminRole(adminRole: AdminRole.SUPER_ADMIN);
           },
           child: const Text("Super admin"),
         ),
@@ -242,7 +251,7 @@ class _AdminOptionPage extends State<AdminOptionPage> {
                 minimumSize: const Size(200, 50),
               ),
               onPressed: () {
-                cubit.setShowLoginWindow(show: false);
+                loginCubit.setShowLoginWindow(show: false);
               },
               child: const Text("Cancel"),
             ),
