@@ -66,7 +66,6 @@ class _MainDashboardPage extends State<MainDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: BlocBuilder<MainPageCubit, MainPageState>(
         builder: (context, state){

@@ -105,7 +105,7 @@ class _CompanyDashBoard extends State<CompanyDashBoard>{
                     },
                   ),
                   const SizedBox(height: 16.0),
-                  Expanded(
+                  const Expanded(
                     child: CompanyGridView(),
                   ),
                 ],
@@ -140,7 +140,7 @@ class _CompanyGridView extends State<CompanyGridView> {
         'col4': PlutoCell(value: item.logoUrl ?? ''),
         'col5': PlutoCell(value: item.rating ?? ''),
         'col6': PlutoCell(value: item.workingHours ?? ''),
-        'col7': PlutoCell(value: item.status.value),
+        'col7': PlutoCell(value: item.deleted == true ? "DELETED" : item.status.value ?? 'Unknown'),
         'col8': PlutoCell(value: item.formatDateTime(item.updatedAt)),
         'col9': PlutoCell(value: item.formatDateTime(item.createdAt)),
         'col10': PlutoCell(

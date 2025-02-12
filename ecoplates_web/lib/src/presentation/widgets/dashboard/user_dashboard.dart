@@ -115,11 +115,8 @@ class _UserDashBoard extends State<UserDashBoard> {
                     },
                   ),
                   const SizedBox(height: 16.0),
-                  Expanded(
-                    child: UserGridView(
-                      //resultData: resultData,
-                      //onRefresh: refreshDashboard,
-                    ),
+                  const Expanded(
+                    child: UserGridView(),
                   ),
                 ],
               ),
@@ -151,7 +148,7 @@ class _UserGridView extends State<UserGridView> {
         'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
         'col3': PlutoCell(value: user.firstName ?? 'N/A'),
         'col4': PlutoCell(value: user.lastName ?? 'N/A'),
-        'col5': PlutoCell(value: user.status.value ?? 'Unknown'),
+        'col5': PlutoCell(value: user.deleted == true ? "DELETED" : user.status.value ?? 'Unknown'),
         'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
         'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
         'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
@@ -203,6 +200,9 @@ class _UserGridView extends State<UserGridView> {
               break;
             case 'BANNED':
               textColor = Colors.red;
+              break;
+            case 'DELETED':
+              textColor = Colors.grey;
               break;
             default:
               textColor = Colors.grey;

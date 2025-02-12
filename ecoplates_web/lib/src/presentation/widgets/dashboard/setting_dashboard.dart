@@ -148,7 +148,7 @@ class _SettingDashBoard extends State<SettingDashBoard> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                Expanded(
+                const Expanded(
                   child: SettingGridView(),
                 ),
               ],
