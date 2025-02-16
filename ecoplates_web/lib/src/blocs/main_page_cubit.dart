@@ -1,4 +1,3 @@
-
 import 'package:ecoplates_web/src/blocs/main_page_state.dart';
 import 'package:ecoplates_web/src/constant/user_or_company_status.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,11 +12,13 @@ import '../presentation/widgets/show_snack_bar.dart';
 import '../services/data_provider/http_service_admin.dart';
 import '../services/data_provider/http_service_company.dart';
 import '../services/data_provider/http_service_user.dart';
+import '../services/http_response/ResponseSearchCompanyInfo.dart';
 import '../services/http_response/response_all_admin_info.dart';
 import '../services/http_response/response_change_deletion_status.dart';
 import '../services/http_response/response_change_user_status.dart';
 import '../services/http_response/response_company_info.dart';
 import '../services/http_response/response_info.dart';
+import '../services/http_response/response_search_user_info.dart';
 import '../services/http_response/response_user_info.dart';
 
 class MainPageCubit extends Cubit<MainPageState> {
@@ -37,6 +38,10 @@ class MainPageCubit extends Cubit<MainPageState> {
 
   void setPageOffset({required int pageOffset}){
     emit(state.copyWith(pageOffset: pageOffset));
+  }
+
+  void setSearchClicked({required bool clicked}){
+    emit(state.copyWith(searchUserClicked: clicked));
   }
 
   Future<void> fetchUserInfo() async {
@@ -95,6 +100,44 @@ class MainPageCubit extends Cubit<MainPageState> {
     }
     catch(e){
       print('Error fetching all admin data: $e');
+    }
+    finally {
+      setShowLoading(show: false);
+    }
+  }
+
+  Future<void> searchUserInfo({required String? phoneNumber}) async {
+    setShowLoading(show: true);
+
+    try {
+      ResponseSearchUserInfo? response = await httpServiceUser.searchUserInfo(phoneNumber: phoneNumber);
+
+      if (response != null && response.resultData != null) {
+        emit(state.copyWith(isLoading: false, searchUserData: response.resultData));
+      } else {
+        print('Failed to search user data: ${response?.resultMsg}');
+      }
+    } catch (e) {
+      print('Error searching user data: $e');
+    }
+    finally {
+      setShowLoading(show: false);
+    }
+  }
+
+  Future<void> searchCompanyInfo({required String? phoneNumber}) async {
+    setShowLoading(show: true);
+
+    try {
+      ResponseSearchCompanyInfo? response = await httpServiceCompany.searchUserInfo(phoneNumber: phoneNumber);
+
+      if (response != null && response.resultData != null) {
+        emit(state.copyWith(isLoading: false, searchCompanyData: response.resultData, refreshWindow: true));
+      } else {
+        print('Failed to search company data: ${response?.resultMsg}');
+      }
+    } catch (e) {
+      print('Error searching company data: $e');
     }
     finally {
       setShowLoading(show: false);

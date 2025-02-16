@@ -1,4 +1,3 @@
-
 import 'package:ecoplates_web/src/blocs/main_page_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,30 +12,29 @@ import '../app_alert_dialog_yesno.dart';
 import '../build_summary_card.dart';
 import '../group_box_widget.dart';
 
-class UserDashBoard extends StatefulWidget{
-  const UserDashBoard({super.key});
+class SearchDashBoard extends StatefulWidget{
+  const SearchDashBoard({super.key});
 
   @override
-  State<UserDashBoard> createState()  => _UserDashBoard();
+  State<SearchDashBoard> createState()  => _SearchDashBoard();
 }
 
-class _UserDashBoard extends State<UserDashBoard> {
+class _SearchDashBoard extends State<SearchDashBoard> {
 
-  late MainPageCubit userCubit;
+  late MainPageCubit cubit;
 
   @override
   void initState() {
     super.initState();
 
-    userCubit = context.read<MainPageCubit>();
-    userCubit.fetchUserInfo();
+    cubit = context.read<MainPageCubit>();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<MainPageCubit, MainPageState>(
-      listener: (context, state){
-        if(state.refreshWindow){
+      listener: (context, state) {
+        if (state.refreshWindow) {
           setState(() {});
         }
       },
@@ -47,66 +45,60 @@ class _UserDashBoard extends State<UserDashBoard> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final availableWidth = constraints.maxWidth;
-                      final cardWidth = availableWidth > 800
-                          ? 200.0
-                          : (availableWidth / 2) - 16;
-
-                      return Wrap(
-                        spacing: 16.0,
-                        runSpacing: 16.0,
-                        children: [
-                          SizedBox(
-                            width: cardWidth,
-                            child: buildSummaryCard(
-                              title: "Users",
-                              titleColor: Colors.blue,
-                              value: "${userCubit.state.userData?.total ?? 0}",
-                              percentage: "",
-                              percentageColor: Colors.transparent,
-                              description: "The number of users",
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: buildSummaryCard(
-                              title: "Active Users",
-                              titleColor: Colors.green,
-                              value: "${userCubit.state.userData?.activeUsers ?? 0}",
-                              percentage: userCubit.state.userData?.activePercentage ?? "0%",
-                              percentageColor: Colors.green,
-                              description: "The number of active users",
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: buildSummaryCard(
-                              title: "Inactive Users",
-                              titleColor: Colors.orange,
-                              value: "${userCubit.state.userData?.inactiveUsers ?? 0}",
-                              percentage: userCubit.state.userData?.inactivePercentage ?? "0%",
-                              percentageColor: Colors.orange,
-                              description: "The number of inactive users",
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: buildSummaryCard(
-                              title: "Banned Users",
-                              titleColor: Colors.red,
-                              value: "${userCubit.state.userData?.bannedUsers ?? 0}",
-                              percentage: userCubit.state.userData?.bannedPercentage ?? "0%",
-                              percentageColor: Colors.red,
-                              description: "The number of banned users",
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
                   const SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 47,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero,
+                            ),
+                            backgroundColor: cubit.state.searchUserClicked ? Colors.blue : Colors.grey[300],
+                            foregroundColor: cubit.state.searchUserClicked ? Colors.white : Colors.black,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              cubit.setSearchClicked(clicked: true);
+                            });
+                          },
+                          child: const Text("User"),
+                        ),),
+                      SizedBox(
+                        height: 47,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero,
+                            ),
+                            backgroundColor: !cubit.state.searchUserClicked ? Colors.blue : Colors.grey[300], // Active/Inactive color
+                            foregroundColor: !cubit.state.searchUserClicked ? Colors.white : Colors.black, // Text color
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              cubit.setSearchClicked(clicked: false);
+                            });
+                          },
+                          child: const Text("Company"),
+                        ),
+                      ),
+                      const SizedBox(width: 10,),
+                      Expanded(
+                        child: GroupBoxWidget(
+                          onSearchPressed: (phoneNumber) {
+                            if(cubit.state.searchUserClicked) {
+                              cubit.searchUserInfo(phoneNumber: phoneNumber);
+                            }
+                            else{
+                              cubit.searchCompanyInfo(phoneNumber: phoneNumber);
+                            }
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 10,),
                   const Expanded(
                     child: UserGridView(),
                   ),
@@ -129,28 +121,10 @@ class UserGridView extends StatefulWidget{
 class _UserGridView extends State<UserGridView> {
   late PlutoGridStateManager stateManager;
 
-  late MainPageCubit userCubit;
+  late MainPageCubit cubit;
 
-  List<PlutoRow> buildRows() {
-    final users = userCubit.state.userData?.users ?? [];
-
-    return users.map((user) {
-      return PlutoRow(cells: {
-        'col1': PlutoCell(value: user.userId?.toString() ?? ''),
-        'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
-        'col3': PlutoCell(value: user.firstName ?? 'N/A'),
-        'col4': PlutoCell(value: user.lastName ?? 'N/A'),
-        'col5': PlutoCell(value: user.deleted == true ? "DELETED" : user.status.value ?? 'Unknown'),
-        'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
-        'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
-        'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
-        'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
-      });
-    }).toList();
-  }
-
-  List<PlutoRow> buildRow() {
-    final user = userCubit.state.searchUserData;
+  List<PlutoRow> buildUserRow() {
+    final user = cubit.state.searchUserData;
 
     if (user == null) {
       return [];
@@ -167,6 +141,32 @@ class _UserGridView extends State<UserGridView> {
         'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
         'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
         'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
+      })
+    ];
+  }
+
+  List<PlutoRow> buildCompanyRow() {
+    final company = cubit.state.searchCompanyData;
+
+    if (company == null) {
+      return [];
+    }
+
+    return [
+      PlutoRow(cells: {
+        'col1': PlutoCell(value: company.companyId.toString()),
+        'col2': PlutoCell(value: company.companyName ?? ''),
+        'col3': PlutoCell(value: company.phoneNumber ?? ''),
+        'col4': PlutoCell(value: company.logoUrl ?? ''),
+        'col5': PlutoCell(value: company.rating ?? ''),
+        'col6': PlutoCell(value: company.workingHours ?? ''),
+        'col7': PlutoCell(value: company.status.value),
+        'col8': PlutoCell(value: company.formatDateTime(company.updatedAt)),
+        'col9': PlutoCell(value: company.formatDateTime(company.createdAt)),
+        'col10': PlutoCell(
+            value: company.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col11': PlutoCell(
+            value: company.deleted == true ? Constants.DELETED : Constants.DELETE),
       })
     ];
   }
@@ -282,7 +282,7 @@ class _UserGridView extends State<UserGridView> {
                   ? UserOrCompanyStatus.INACTIVE
                   : UserOrCompanyStatus.BANNED;
 
-              await userCubit.changeUserStatus(phone: phone, status: newStatus);
+              await cubit.changeUserStatus(phone: phone, status: newStatus);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isBanned ? Colors.red : Colors.green,
@@ -323,7 +323,7 @@ class _UserGridView extends State<UserGridView> {
 
               if (confirm != true) return;
 
-              await userCubit.changeUserDeletionStatus(phone: phone, deleted: !isDeleted);
+              await cubit.changeUserDeletionStatus(phone: phone, deleted: !isDeleted);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
@@ -336,48 +336,17 @@ class _UserGridView extends State<UserGridView> {
     ];
   }
 
-  Future<PlutoLazyPaginationResponse> fetch(PlutoLazyPaginationRequest request) async {
-    const pageSize = Constants.PAGE_SIZE;
-    final offset = (request.page - 1) * pageSize;
-
-    userCubit.setPageOffset(pageOffset: offset);
-    await userCubit.fetchUserInfo();
-
-    final users = userCubit.state.userData?.users ?? [];
-    final rows = users.map((user) {
-      return PlutoRow(cells: {
-        'col1': PlutoCell(value: user.userId?.toString() ?? ''),
-        'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
-        'col3': PlutoCell(value: user.firstName ?? 'N/A'),
-        'col4': PlutoCell(value: user.lastName ?? 'N/A'),
-        'col5': PlutoCell(value: user.status.value ?? 'Unknown'),
-        'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
-        'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
-        'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
-        'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
-      });
-    }).toList() ?? [];
-
-    final totalRows = userCubit.state.userData?.total ?? 0;
-    final totalPage = (totalRows / pageSize).ceil();
-
-    return PlutoLazyPaginationResponse(
-      totalPage: totalPage,
-      rows: rows,
-    );
-  }
-
   @override
   void initState(){
     super.initState();
 
-    userCubit = context.read<MainPageCubit>();
+    cubit = context.read<MainPageCubit>();
   }
 
   void refreshGrid(){
-    if (userCubit.state.userData != null) {
+    if (cubit.state.searchUserData != null || cubit.state.searchCompanyData != null) {
 
-      final newRows = buildRows();
+      final newRows = cubit.state.searchUserClicked ? buildUserRow() : buildCompanyRow();
 
       stateManager.removeAllRows();
       stateManager.appendRows(newRows);
@@ -395,31 +364,16 @@ class _UserGridView extends State<UserGridView> {
         }
       },
       child: PlutoGrid(
-        columns: buildColumns(context),
-        rows: [],
-        configuration: const PlutoGridConfiguration(),
-        onLoaded: (PlutoGridOnLoadedEvent event) async {
-          stateManager = event.stateManager;
-          stateManager.setShowColumnFilter(true);
-        },
-        onChanged: (PlutoGridOnChangedEvent event) {
-          print("Row changed: ${event.row.cells}");
-        },
-        /*createFooter: (stateManager) {
-          stateManager.setPageSize(100, notify: false);
-          return PlutoPagination(stateManager);
-        },
-        */
-          createFooter: (stateManager) {
-            return PlutoLazyPagination(
-              initialPage: 1,
-              initialFetch: true,
-              fetchWithSorting: true,
-              fetchWithFiltering: true,
-              fetch: fetch,
-              stateManager: stateManager,
-            );
-          }
+          columns: buildColumns(context),
+          rows: [],
+          configuration: const PlutoGridConfiguration(),
+          onLoaded: (PlutoGridOnLoadedEvent event) async {
+            stateManager = event.stateManager;
+            stateManager.setShowColumnFilter(false);
+          },
+          onChanged: (PlutoGridOnChangedEvent event) {
+            print("Row changed: ${event.row.cells}");
+          },
       ),
     );
   }

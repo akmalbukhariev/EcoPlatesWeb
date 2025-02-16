@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../model/change_user_deletion_status.dart';
 import '../../model/change_user_status.dart';
 import '../../model/pagination_info.dart';
+import '../http_response/ResponseSearchCompanyInfo.dart';
 import '../http_response/response_change_deletion_status.dart';
 import '../http_response/response_change_user_status.dart';
 import '../http_response/response_company_info.dart';
@@ -14,6 +15,7 @@ class HttpServiceCompany{
   //static String SERVER_URL = "http://localhost:8084/ecoplatesadmin/api/v1/company/"; //for the local server
   final String SERVER_URL;
   String get GET_PAGINATED_USER => "${SERVER_URL}getPaginatedUsers";
+  String get SEARCH_USER => "${SERVER_URL}getUserByPhone/";
   String get CHANGE_USER_STATUS => "${SERVER_URL}changeUserStatus";
   String get CHANGE_USER_DELETION_STATUS => "${SERVER_URL}changeUserDeletionStatus";
 
@@ -50,6 +52,29 @@ class HttpServiceCompany{
         Map<String, dynamic> jsonData = json.decode(responseBody);
 
         return ResponseCompanyInfo.fromJson(jsonData);
+      } else {
+        print("Error: ${streamedResponse.statusCode} - ${streamedResponse.reasonPhrase}");
+      }
+    } catch (e) {
+      print("Exception: $e");
+    }
+
+    return null;
+  }
+
+  Future<ResponseSearchCompanyInfo?> searchUserInfo({required String? phoneNumber}) async {
+
+    try {
+      var request = http.Request('GET', Uri.parse("$SEARCH_USER$phoneNumber"));
+      request.headers.addAll(getHeaders());
+
+      http.StreamedResponse streamedResponse = await request.send();
+
+      if (streamedResponse.statusCode == 200) {
+        String responseBody = await streamedResponse.stream.bytesToString();
+        Map<String, dynamic> jsonData = json.decode(responseBody);
+
+        return ResponseSearchCompanyInfo.fromJson(jsonData);
       } else {
         print("Error: ${streamedResponse.statusCode} - ${streamedResponse.reasonPhrase}");
       }
