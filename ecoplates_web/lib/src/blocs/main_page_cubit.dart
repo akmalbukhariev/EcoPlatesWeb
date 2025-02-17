@@ -1,5 +1,8 @@
 import 'package:ecoplates_web/src/blocs/main_page_state.dart';
+import 'package:ecoplates_web/src/constant/business_type.dart';
 import 'package:ecoplates_web/src/constant/user_or_company_status.dart';
+import 'package:ecoplates_web/src/model/company_info.dart';
+import 'package:ecoplates_web/src/model/user_info.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../constant/constants.dart';
@@ -41,7 +44,12 @@ class MainPageCubit extends Cubit<MainPageState> {
   }
 
   void setSearchClicked({required bool clicked}){
-    emit(state.copyWith(searchUserClicked: clicked));
+    emit(state.copyWith(
+        searchUserClicked: clicked,
+        searchUserData: UserInfo(phoneNumber: "", status: UserOrCompanyStatus.NONE),
+        searchCompanyData: CompanyInfo(companyName: "", phoneNumber: "", businessType: BusinessType.NONE, status: UserOrCompanyStatus.NONE),
+      refreshWindow: true
+    ));
   }
 
   Future<void> fetchUserInfo() async {

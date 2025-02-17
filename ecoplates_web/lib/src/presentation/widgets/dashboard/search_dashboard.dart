@@ -99,8 +99,8 @@ class _SearchDashBoard extends State<SearchDashBoard> {
                     ],
                   ),
                   const SizedBox(height: 10,),
-                  const Expanded(
-                    child: UserGridView(),
+                  Expanded(
+                    child: cubit.state.searchUserClicked ? UserSearchGridView() : CompanySearchGridView()
                   ),
                 ],
               ),
@@ -111,14 +111,14 @@ class _SearchDashBoard extends State<SearchDashBoard> {
   }
 }
 
-class UserGridView extends StatefulWidget{
-  const UserGridView({super.key});
+class UserSearchGridView extends StatefulWidget{
+  const UserSearchGridView({super.key});
 
   @override
-  State<UserGridView> createState()  => _UserGridView();
+  State<UserSearchGridView> createState()  => _UserSearchGridView();
 }
 
-class _UserGridView extends State<UserGridView> {
+class _UserSearchGridView extends State<UserSearchGridView> {
   late PlutoGridStateManager stateManager;
 
   late MainPageCubit cubit;
@@ -129,6 +129,7 @@ class _UserGridView extends State<UserGridView> {
     if (user == null) {
       return [];
     }
+    print("searchUserData is not null =====================================");
 
     return [
       PlutoRow(cells: {
@@ -141,32 +142,6 @@ class _UserGridView extends State<UserGridView> {
         'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
         'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
         'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
-      })
-    ];
-  }
-
-  List<PlutoRow> buildCompanyRow() {
-    final company = cubit.state.searchCompanyData;
-
-    if (company == null) {
-      return [];
-    }
-
-    return [
-      PlutoRow(cells: {
-        'col1': PlutoCell(value: company.companyId.toString()),
-        'col2': PlutoCell(value: company.companyName ?? ''),
-        'col3': PlutoCell(value: company.phoneNumber ?? ''),
-        'col4': PlutoCell(value: company.logoUrl ?? ''),
-        'col5': PlutoCell(value: company.rating ?? ''),
-        'col6': PlutoCell(value: company.workingHours ?? ''),
-        'col7': PlutoCell(value: company.status.value),
-        'col8': PlutoCell(value: company.formatDateTime(company.updatedAt)),
-        'col9': PlutoCell(value: company.formatDateTime(company.createdAt)),
-        'col10': PlutoCell(
-            value: company.isBanned() ? Constants.BANNED : Constants.BAN),
-        'col11': PlutoCell(
-            value: company.deleted == true ? Constants.DELETED : Constants.DELETE),
       })
     ];
   }
@@ -343,16 +318,15 @@ class _UserGridView extends State<UserGridView> {
     cubit = context.read<MainPageCubit>();
   }
 
-  void refreshGrid(){
-    if (cubit.state.searchUserData != null || cubit.state.searchCompanyData != null) {
+  void refreshGrid() {
+    final newRows = cubit.state.searchUserData != null ? buildUserRow() : <PlutoRow>[]; // Ensure empty list
 
-      final newRows = cubit.state.searchUserClicked ? buildUserRow() : buildCompanyRow();
-
-      stateManager.removeAllRows();
+    stateManager.removeAllRows();
+    if (newRows.isNotEmpty) {
       stateManager.appendRows(newRows);
-
-      stateManager.notifyListeners();
     }
+
+    stateManager.notifyListeners();
   }
 
   @override
@@ -374,6 +348,262 @@ class _UserGridView extends State<UserGridView> {
           onChanged: (PlutoGridOnChangedEvent event) {
             print("Row changed: ${event.row.cells}");
           },
+      ),
+    );
+  }
+}
+
+class CompanySearchGridView extends StatefulWidget{
+  const CompanySearchGridView({super.key});
+
+  @override
+  State<CompanySearchGridView> createState()  => _CompanySearchGridView();
+}
+
+class _CompanySearchGridView extends State<CompanySearchGridView> {
+  late PlutoGridStateManager stateManager;
+
+  late MainPageCubit cubit;
+
+  List<PlutoRow> buildRow() {
+    final company = cubit.state.searchCompanyData;
+
+    if (company == null) {
+      return [];
+    }
+
+    return [
+      PlutoRow(cells: {
+        'col1': PlutoCell(value: company.companyId.toString()),
+        'col2': PlutoCell(value: company.companyName ?? ''),
+        'col3': PlutoCell(value: company.phoneNumber ?? ''),
+        'col4': PlutoCell(value: company.logoUrl ?? ''),
+        'col5': PlutoCell(value: company.rating ?? ''),
+        'col6': PlutoCell(value: company.workingHours ?? ''),
+        'col7': PlutoCell(value: company.status.value),
+        'col8': PlutoCell(value: company.formatDateTime(company.updatedAt)),
+        'col9': PlutoCell(value: company.formatDateTime(company.createdAt)),
+        'col10': PlutoCell(
+            value: company.isBanned() ? Constants.BANNED : Constants.BAN),
+        'col11': PlutoCell(
+            value: company.deleted == true ? Constants.DELETED : Constants.DELETE),
+      })
+    ];
+  }
+
+  List<PlutoColumn> buildColumns(BuildContext context) {
+    return [
+      PlutoColumn(
+        title: 'Id',
+        field: 'col1',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Company name',
+        field: 'col2',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Phone number',
+        field: 'col3',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Logo',
+        field: 'col4',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Rating',
+        field: 'col5',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Working hours',
+        field: 'col6',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Status',
+        field: 'col7',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+        renderer: (PlutoColumnRendererContext ctx) {
+          Color textColor;
+
+          switch (ctx.cell.value) {
+            case 'ACTIVE':
+              textColor = Colors.green;
+              break;
+            case 'INACTIVE':
+              textColor = Colors.orange;
+              break;
+            case 'BANNED':
+              textColor = Colors.red;
+              break;
+            default:
+              textColor = Colors.grey;
+          }
+
+          return Text(
+            ctx.column.type.applyFormat(ctx.cell.value),
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          );
+        },
+      ),
+      PlutoColumn(
+        title: 'Updated',
+        field: 'col8',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      PlutoColumn(
+        title: 'Created',
+        field: 'col9',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+      ),
+      //Ban
+      PlutoColumn(
+        title: Constants.BAN,
+        field: 'col10',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+        enableFilterMenuItem: false,
+        renderer: (rendererContext) {
+          final phone = rendererContext.row.cells['col3']?.value as String?;
+          if (phone == null || phone.isEmpty) {
+            return const Text("No phone number");
+          }
+
+          final bool isDeleted = rendererContext.row.cells['col11']?.value ==
+              Constants.DELETED;
+          final bool isBanned = rendererContext.cell.value ==
+              Constants.BANNED;
+
+          final String confirmationText = isBanned
+              ? "Do you really want to unban this company?"
+              : "Do you really want to ban this company?";
+
+          return ElevatedButton(
+            onPressed: isDeleted ? null :
+                () async {
+              final bool? confirm = await AppAlertDialogYesNo.showAlert(
+                context: context,
+                title: "Confirmation",
+                content: confirmationText,
+                yesText: "Confirm",
+                noText: "Cancel",
+              );
+
+              if (confirm != true) return;
+
+              final newStatus = isBanned
+                  ? UserOrCompanyStatus.INACTIVE
+                  : UserOrCompanyStatus.BANNED;
+
+              await cubit.changeCompanyStatus(
+                  phone: phone, status: newStatus);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isBanned ? Colors.red : Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(isBanned ? Constants.BANNED : Constants.BAN),
+          );
+        },
+      ),
+      //Delete
+      PlutoColumn(
+        title: Constants.DELETE,
+        field: 'col11',
+        type: PlutoColumnType.text(),
+        readOnly: true,
+        enableFilterMenuItem: false,
+        renderer: (rendererContext) {
+          final phone = rendererContext.row.cells['col3']?.value as String?;
+          if (phone == null || phone.isEmpty) {
+            return const Text("No phone number");
+          }
+
+          final bool isDeleted = rendererContext.cell.value ==
+              Constants.DELETED;
+          final String confirmationText = isDeleted
+              ? "Do you really want to restore this company?"
+              : "Do you really want to delete this company?";
+
+          return ElevatedButton(
+            onPressed: () async {
+              final bool? confirm = await AppAlertDialogYesNo.showAlert(
+                context: context,
+                title: "Confirmation",
+                content: confirmationText,
+                yesText: "Confirm",
+                noText: "Cancel",
+              );
+
+              if (confirm != true) return;
+
+              await cubit.changeCompanyDeletionStatus(
+                  phone: phone, deleted: !isDeleted);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(isDeleted ? Constants.DELETED : Constants.DELETE),
+          );
+        },
+      ),
+    ];
+  }
+
+  @override
+  void initState(){
+    super.initState();
+
+    cubit = context.read<MainPageCubit>();
+  }
+
+  void refreshGrid() {
+    final newRows = cubit.state.searchCompanyData != null ? buildRow() : <PlutoRow>[]; // Ensure empty list
+
+    stateManager.removeAllRows();
+    if (newRows.isNotEmpty) {
+      stateManager.appendRows(newRows);
+    }
+
+    stateManager.notifyListeners();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<MainPageCubit, MainPageState>(
+      listener: (context, state){
+        if(state.refreshWindow){
+          refreshGrid();
+        }
+      },
+      child: PlutoGrid(
+        columns: buildColumns(context),
+        rows: [],
+        configuration: const PlutoGridConfiguration(),
+        onLoaded: (PlutoGridOnLoadedEvent event) async {
+          stateManager = event.stateManager;
+          stateManager.setShowColumnFilter(false);
+        },
+        onChanged: (PlutoGridOnChangedEvent event) {
+          print("Row changed: ${event.row.cells}");
+        },
       ),
     );
   }
