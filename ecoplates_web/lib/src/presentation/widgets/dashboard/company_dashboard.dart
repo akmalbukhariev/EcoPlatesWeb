@@ -140,7 +140,7 @@ class _CompanyGridView extends State<CompanyGridView> {
         'col4': PlutoCell(value: item.logoUrl ?? ''),
         'col5': PlutoCell(value: item.rating ?? ''),
         'col6': PlutoCell(value: item.workingHours ?? ''),
-        'col7': PlutoCell(value: item.deleted == true ? "DELETED" : item.status.value ?? 'Unknown'),
+        'col7': PlutoCell(value: item.deleted == true ? Constants.DELETED.toUpperCase() : item.status.value ?? 'Unknown'),
         'col8': PlutoCell(value: item.formatDateTime(item.updatedAt)),
         'col9': PlutoCell(value: item.formatDateTime(item.createdAt)),
         'col10': PlutoCell(
@@ -206,6 +206,9 @@ class _CompanyGridView extends State<CompanyGridView> {
               break;
             case 'BANNED':
               textColor = Colors.red;
+              break;
+            case 'DELETED':
+              textColor = Colors.grey;
               break;
             default:
               textColor = Colors.grey;

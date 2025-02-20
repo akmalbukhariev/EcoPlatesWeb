@@ -26,6 +26,7 @@ class HttpServiceAdmin{
 
   HttpServiceAdmin({
     this.SERVER_URL = "http://176.221.28.246:8088/ecoplatesadmin/api/v1/admin/",
+    //this.SERVER_URL = "http://localhost:8088/ecoplatesadmin/api/v1/admin/",
   });
 
   String? getToken() => TOKEN;

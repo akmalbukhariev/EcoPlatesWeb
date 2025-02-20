@@ -8,6 +8,7 @@ class MainPageState {
   bool isLoading;
   bool searchUserClicked;
   bool refreshWindow;
+  bool showAlertBox;
   int pageOffset;
   UserInfo? searchUserData;
   CompanyInfo? searchCompanyData;
@@ -19,6 +20,7 @@ class MainPageState {
     this.isLoading = false,
     this.searchUserClicked = true,
     this.refreshWindow = false,
+    this.showAlertBox = false,
     this.pageOffset = 1,
     this.searchUserData,
     this.searchCompanyData,
@@ -31,23 +33,27 @@ class MainPageState {
     bool? isLoading,
     bool? searchUserClicked,
     bool? refreshWindow,
+    bool? showAlertBox,
     int? pageOffset,
-    UserInfo? searchUserData,
-    CompanyInfo? searchCompanyData,
-    UserDataResponse? userData,
-    CompanyDataResponse? companyData,
-    List<AdminInfo>? adminData
+    Object? searchUserData = _unset,
+    Object? searchCompanyData = _unset,
+    Object? userData = _unset,
+    Object? companyData = _unset,
+    Object? adminData = _unset,
   }) {
     return MainPageState(
-        isLoading: isLoading ?? this.isLoading,
-        searchUserClicked: searchUserClicked ?? this.searchUserClicked,
-        refreshWindow: refreshWindow ?? this.refreshWindow,
-        pageOffset: pageOffset ?? this.pageOffset,
-        searchUserData: searchUserData ?? this.searchUserData,
-        searchCompanyData: searchCompanyData ?? this.searchCompanyData,
-        userData: userData ?? this.userData,
-        companyData: companyData ?? this.companyData,
-        adminData: adminData ?? this.adminData
+      isLoading: isLoading ?? this.isLoading,
+      searchUserClicked: searchUserClicked ?? this.searchUserClicked,
+      refreshWindow: refreshWindow ?? this.refreshWindow,
+      showAlertBox: showAlertBox ?? this.showAlertBox,
+      pageOffset: pageOffset ?? this.pageOffset,
+      searchUserData: searchUserData == _unset ? this.searchUserData : searchUserData as UserInfo?,
+      searchCompanyData: searchCompanyData == _unset ? this.searchCompanyData : searchCompanyData as CompanyInfo?,
+      userData: userData == _unset ? this.userData : userData as UserDataResponse?,
+      companyData: companyData == _unset ? this.companyData : companyData as CompanyDataResponse?,
+      adminData: adminData == _unset ? this.adminData : adminData as List<AdminInfo>?,
     );
   }
+
+  static const _unset = Object();
 }

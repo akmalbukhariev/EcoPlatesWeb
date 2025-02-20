@@ -1,4 +1,5 @@
 import 'package:ecoplates_web/src/blocs/main_page_state.dart';
+import 'package:ecoplates_web/src/presentation/widgets/show_snack_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -100,7 +101,7 @@ class _SearchDashBoard extends State<SearchDashBoard> {
                   ),
                   const SizedBox(height: 10,),
                   Expanded(
-                    child: cubit.state.searchUserClicked ? UserSearchGridView() : CompanySearchGridView()
+                    child: cubit.state.searchUserClicked ? const UserSearchGridView() : const CompanySearchGridView()
                   ),
                 ],
               ),
@@ -123,13 +124,12 @@ class _UserSearchGridView extends State<UserSearchGridView> {
 
   late MainPageCubit cubit;
 
-  List<PlutoRow> buildUserRow() {
+  List<PlutoRow> buildRow() {
     final user = cubit.state.searchUserData;
 
     if (user == null) {
       return [];
     }
-    print("searchUserData is not null =====================================");
 
     return [
       PlutoRow(cells: {
@@ -137,7 +137,7 @@ class _UserSearchGridView extends State<UserSearchGridView> {
         'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
         'col3': PlutoCell(value: user.firstName ?? 'N/A'),
         'col4': PlutoCell(value: user.lastName ?? 'N/A'),
-        'col5': PlutoCell(value: user.deleted == true ? "DELETED" : user.status.value ?? 'Unknown'),
+        'col5': PlutoCell(value: user.deleted == true ? Constants.DELETED.toUpperCase() : user.status.value ?? 'Unknown'),
         'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
         'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
         'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
@@ -257,7 +257,7 @@ class _UserSearchGridView extends State<UserSearchGridView> {
                   ? UserOrCompanyStatus.INACTIVE
                   : UserOrCompanyStatus.BANNED;
 
-              await cubit.changeUserStatus(phone: phone, status: newStatus);
+              await cubit.changeUserStatus(phone: phone, status: newStatus, isThisSearchMenu: true);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isBanned ? Colors.red : Colors.green,
@@ -280,8 +280,7 @@ class _UserSearchGridView extends State<UserSearchGridView> {
             return const Text("No phone number");
           }
 
-          final bool isDeleted = rendererContext.cell.value ==
-              Constants.DELETED;
+          final bool isDeleted = rendererContext.cell.value == Constants.DELETED;
           final String confirmationText = isDeleted
               ? "Do you really want to restore this user?"
               : "Do you really want to delete this user?";
@@ -298,7 +297,7 @@ class _UserSearchGridView extends State<UserSearchGridView> {
 
               if (confirm != true) return;
 
-              await cubit.changeUserDeletionStatus(phone: phone, deleted: !isDeleted);
+              await cubit.changeUserDeletionStatus(phone: phone, deleted: !isDeleted, isThisSearchMenu: true);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
@@ -319,7 +318,7 @@ class _UserSearchGridView extends State<UserSearchGridView> {
   }
 
   void refreshGrid() {
-    final newRows = cubit.state.searchUserData != null ? buildUserRow() : <PlutoRow>[]; // Ensure empty list
+    final newRows = cubit.state.searchUserData != null ? buildRow() : <PlutoRow>[];
 
     stateManager.removeAllRows();
     if (newRows.isNotEmpty) {
@@ -335,6 +334,11 @@ class _UserSearchGridView extends State<UserSearchGridView> {
       listener: (context, state){
         if(state.refreshWindow){
           refreshGrid();
+        }
+
+        if(cubit.state.showAlertBox){
+          ShowSnackBar(context: context, message: "Could not find the user!");
+          cubit.setShowAlertDialog(show: false);
         }
       },
       child: PlutoGrid(
@@ -380,7 +384,7 @@ class _CompanySearchGridView extends State<CompanySearchGridView> {
         'col4': PlutoCell(value: company.logoUrl ?? ''),
         'col5': PlutoCell(value: company.rating ?? ''),
         'col6': PlutoCell(value: company.workingHours ?? ''),
-        'col7': PlutoCell(value: company.status.value),
+        'col7': PlutoCell(value: company.deleted == true ? Constants.DELETED.toUpperCase() : company.status.value ?? 'Unknown'),
         'col8': PlutoCell(value: company.formatDateTime(company.updatedAt)),
         'col9': PlutoCell(value: company.formatDateTime(company.createdAt)),
         'col10': PlutoCell(
@@ -447,6 +451,9 @@ class _CompanySearchGridView extends State<CompanySearchGridView> {
             case 'BANNED':
               textColor = Colors.red;
               break;
+            case 'DELETED':
+              textColor = Colors.grey;
+              break;
             default:
               textColor = Colors.grey;
           }
@@ -511,8 +518,7 @@ class _CompanySearchGridView extends State<CompanySearchGridView> {
                   ? UserOrCompanyStatus.INACTIVE
                   : UserOrCompanyStatus.BANNED;
 
-              await cubit.changeCompanyStatus(
-                  phone: phone, status: newStatus);
+              await cubit.changeCompanyStatus(phone: phone, status: newStatus, isThisSearchMenu: true);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isBanned ? Colors.red : Colors.green,
@@ -535,8 +541,7 @@ class _CompanySearchGridView extends State<CompanySearchGridView> {
             return const Text("No phone number");
           }
 
-          final bool isDeleted = rendererContext.cell.value ==
-              Constants.DELETED;
+          final bool isDeleted = rendererContext.cell.value == Constants.DELETED;
           final String confirmationText = isDeleted
               ? "Do you really want to restore this company?"
               : "Do you really want to delete this company?";
@@ -553,8 +558,7 @@ class _CompanySearchGridView extends State<CompanySearchGridView> {
 
               if (confirm != true) return;
 
-              await cubit.changeCompanyDeletionStatus(
-                  phone: phone, deleted: !isDeleted);
+              await cubit.changeCompanyDeletionStatus(phone: phone, deleted: !isDeleted, isThisSearchMenu: true);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDeleted ? Colors.grey : Colors.blueGrey,
@@ -575,7 +579,7 @@ class _CompanySearchGridView extends State<CompanySearchGridView> {
   }
 
   void refreshGrid() {
-    final newRows = cubit.state.searchCompanyData != null ? buildRow() : <PlutoRow>[]; // Ensure empty list
+    final newRows = cubit.state.searchCompanyData != null ? buildRow() : <PlutoRow>[];
 
     stateManager.removeAllRows();
     if (newRows.isNotEmpty) {
@@ -591,6 +595,11 @@ class _CompanySearchGridView extends State<CompanySearchGridView> {
       listener: (context, state){
         if(state.refreshWindow){
           refreshGrid();
+        }
+
+        if(cubit.state.showAlertBox){
+          ShowSnackBar(context: context, message: "Could not find the company!");
+          cubit.setShowAlertDialog(show: false);
         }
       },
       child: PlutoGrid(

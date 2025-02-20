@@ -39,16 +39,18 @@ class MainPageCubit extends Cubit<MainPageState> {
     emit(state.copyWith(isLoading: show));
   }
 
+  void setShowAlertDialog({required bool show}) {
+    emit(state.copyWith(showAlertBox: show));
+  }
+
   void setPageOffset({required int pageOffset}){
     emit(state.copyWith(pageOffset: pageOffset));
   }
 
-  void setSearchClicked({required bool clicked}){
+  void setSearchClicked({required bool clicked}) {
     emit(state.copyWith(
         searchUserClicked: clicked,
-        searchUserData: UserInfo(phoneNumber: "", status: UserOrCompanyStatus.NONE),
-        searchCompanyData: CompanyInfo(companyName: "", phoneNumber: "", businessType: BusinessType.NONE, status: UserOrCompanyStatus.NONE),
-      refreshWindow: true
+        refreshWindow: true
     ));
   }
 
@@ -121,15 +123,16 @@ class MainPageCubit extends Cubit<MainPageState> {
       ResponseSearchUserInfo? response = await httpServiceUser.searchUserInfo(phoneNumber: phoneNumber);
 
       if (response != null && response.resultData != null) {
-        emit(state.copyWith(isLoading: false, searchUserData: response.resultData));
+        emit(state.copyWith(isLoading: false, searchUserData: response.resultData, refreshWindow: true));
       } else {
+        emit(state.copyWith(isLoading: false, showAlertBox: true, searchUserData: null));
         print('Failed to search user data: ${response?.resultMsg}');
       }
     } catch (e) {
       print('Error searching user data: $e');
     }
     finally {
-      setShowLoading(show: false);
+      //setShowLoading(show: false);
     }
   }
 
@@ -142,17 +145,18 @@ class MainPageCubit extends Cubit<MainPageState> {
       if (response != null && response.resultData != null) {
         emit(state.copyWith(isLoading: false, searchCompanyData: response.resultData, refreshWindow: true));
       } else {
+        emit(state.copyWith(isLoading: false, showAlertBox: true, searchCompanyData: null));
         print('Failed to search company data: ${response?.resultMsg}');
       }
     } catch (e) {
       print('Error searching company data: $e');
     }
     finally {
-      setShowLoading(show: false);
+      //setShowLoading(show: false);
     }
   }
 
-  Future<void> changeUserStatus({required String phone, required UserOrCompanyStatus status}) async {
+  Future<void> changeUserStatus({required String phone, required UserOrCompanyStatus status, bool isThisSearchMenu = false}) async {
     setShowLoading(show: true);
 
     try {
@@ -165,7 +169,12 @@ class MainPageCubit extends Cubit<MainPageState> {
           .changeUserStatus(data: data);
 
       if (response != null) {
-        await fetchUserInfo();
+        if(isThisSearchMenu){
+            searchUserInfo(phoneNumber: phone);
+        }
+        else{
+          await fetchUserInfo();
+        }
       } else {
         print('Failed to update user status: ${response?.resultMsg}');
       }
@@ -178,7 +187,7 @@ class MainPageCubit extends Cubit<MainPageState> {
     }
   }
 
-  Future<void> changeCompanyStatus({required String phone, required UserOrCompanyStatus status}) async {
+  Future<void> changeCompanyStatus({required String phone, required UserOrCompanyStatus status, bool isThisSearchMenu = false}) async {
     setShowLoading(show: true);
 
     try {
@@ -191,7 +200,12 @@ class MainPageCubit extends Cubit<MainPageState> {
           .changeUserStatus(data: data);
 
       if (response != null) {
-        await fetchCompanyInfo();
+        if(isThisSearchMenu){
+          await searchCompanyInfo(phoneNumber: phone);
+        }
+        else {
+          await fetchCompanyInfo();
+        }
       } else {
         print('Failed to update company status: ${response?.resultMsg}');
       }
@@ -204,7 +218,7 @@ class MainPageCubit extends Cubit<MainPageState> {
     }
   }
 
-  Future<void> changeUserDeletionStatus({required String phone, required bool deleted}) async{
+  Future<void> changeUserDeletionStatus({required String phone, required bool deleted, bool isThisSearchMenu = false}) async{
     setShowLoading(show: true);
 
     try{
@@ -217,7 +231,12 @@ class MainPageCubit extends Cubit<MainPageState> {
           .changeUserDeletionStatus(data: data);
 
       if (response != null) {
-        await fetchUserInfo();
+        if(isThisSearchMenu) {
+          await searchUserInfo(phoneNumber: phone);
+        }
+        else {
+          await fetchUserInfo();
+        }
       } else {
         print('Failed to update user deletion status: ${response
             ?.resultMsg}');
@@ -231,7 +250,7 @@ class MainPageCubit extends Cubit<MainPageState> {
     }
   }
 
-  Future<void> changeCompanyDeletionStatus({required String phone, required bool deleted}) async{
+  Future<void> changeCompanyDeletionStatus({required String phone, required bool deleted, bool isThisSearchMenu = false}) async{
     setShowLoading(show: true);
 
     try{
@@ -244,7 +263,12 @@ class MainPageCubit extends Cubit<MainPageState> {
           .changeUserDeletionStatus(data: data);
 
       if (response != null) {
-        await fetchCompanyInfo();
+        if(isThisSearchMenu){
+          await searchCompanyInfo(phoneNumber: phone);
+        }
+        else {
+          await fetchCompanyInfo();
+        }
       } else {
         print('Failed to update company deletion status: ${response
             ?.resultMsg}');

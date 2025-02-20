@@ -140,35 +140,13 @@ class _UserGridView extends State<UserGridView> {
         'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
         'col3': PlutoCell(value: user.firstName ?? 'N/A'),
         'col4': PlutoCell(value: user.lastName ?? 'N/A'),
-        'col5': PlutoCell(value: user.deleted == true ? "DELETED" : user.status.value ?? 'Unknown'),
+        'col5': PlutoCell(value: user.deleted == true ? Constants.DELETED.toUpperCase() : user.status.value ?? 'Unknown'),
         'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
         'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
         'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
         'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
       });
     }).toList();
-  }
-
-  List<PlutoRow> buildRow() {
-    final user = userCubit.state.searchUserData;
-
-    if (user == null) {
-      return [];
-    }
-
-    return [
-      PlutoRow(cells: {
-        'col1': PlutoCell(value: user.userId?.toString() ?? ''),
-        'col2': PlutoCell(value: user.phoneNumber ?? 'No Phone'),
-        'col3': PlutoCell(value: user.firstName ?? 'N/A'),
-        'col4': PlutoCell(value: user.lastName ?? 'N/A'),
-        'col5': PlutoCell(value: user.deleted == true ? "DELETED" : user.status.value ?? 'Unknown'),
-        'col6': PlutoCell(value: user.formatDateTime(user.updatedAt) ?? ''),
-        'col7': PlutoCell(value: user.formatDateTime(user.createdAt) ?? ''),
-        'col8': PlutoCell(value: user.isBanned() ? Constants.BANNED : Constants.BAN),
-        'col9': PlutoCell(value: user.deleted == true ? Constants.DELETED : Constants.DELETE),
-      })
-    ];
   }
 
   List<PlutoColumn> buildColumns(BuildContext context) {
