@@ -1,8 +1,5 @@
 import 'package:ecoplates_web/src/blocs/main_page_state.dart';
-import 'package:ecoplates_web/src/constant/business_type.dart';
 import 'package:ecoplates_web/src/constant/user_or_company_status.dart';
-import 'package:ecoplates_web/src/model/company_info.dart';
-import 'package:ecoplates_web/src/model/user_info.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../constant/constants.dart';
@@ -10,12 +7,14 @@ import '../constant/result.dart';
 import '../model/admin_register_info.dart';
 import '../model/change_user_deletion_status.dart';
 import '../model/change_user_status.dart';
+import '../model/notification_register_info.dart';
 import '../model/pagination_info.dart';
-import '../presentation/widgets/show_snack_bar.dart';
 import '../services/data_provider/http_service_admin.dart';
 import '../services/data_provider/http_service_company.dart';
 import '../services/data_provider/http_service_user.dart';
-import '../services/http_response/ResponseSearchCompanyInfo.dart';
+import '../services/http_response/notification_data_response.dart';
+import '../services/http_response/response_notification_info.dart';
+import '../services/http_response/response_search_company_info.dart';
 import '../services/http_response/response_all_admin_info.dart';
 import '../services/http_response/response_change_deletion_status.dart';
 import '../services/http_response/response_change_user_status.dart';
@@ -113,6 +112,53 @@ class MainPageCubit extends Cubit<MainPageState> {
     }
     finally {
       setShowLoading(show: false);
+    }
+  }
+
+  Future<void> fetchNotificationInfo() async {
+    setShowLoading(show: true);
+    try {
+      ResponseNotificationInfo? response = await httpServiceAdmin.getAllNotifications();
+
+      if (response != null && response.resultData != null) {
+        emit(state.copyWith(isLoading: false, notificationData: response.resultData, refreshWindow: true));
+      } else {
+        print('Failed to fetch notification data: ${response?.resultMsg}');
+      }
+    } catch (e) {
+      print('Error fetching notification data: $e');
+    }
+    finally {
+      setShowLoading(show: false);
+    }
+  }
+
+  Future<String> sendNotification({required String title, required String message}) async {
+    setShowLoading(show: true);
+
+    try {
+      NotificationRegisterInfo data = NotificationRegisterInfo(
+        message: message, status: '', sends: ''
+      );
+
+      ResponseInfo? response = await httpServiceAdmin.registerNotification(data: data);
+
+      if (response != null) {
+        if (response.resultCode == Result.SUCCESS.codeAsString) {
+          await fetchNotificationInfo();
+          return response.resultMsg ?? "Operation successful";
+        } else {
+          return response.resultMsg ?? "Error: Operation failed";
+        }
+      } else {
+        return "Error: No response from server";
+      }
+    }
+    catch (e) {
+      return "An error occurred $e";
+    }
+    finally {
+      //setShowLoading(show: false);
     }
   }
 
@@ -291,7 +337,7 @@ class MainPageCubit extends Cubit<MainPageState> {
           password: password,
           admin_role: admin_role
       );
-      ResponseInfo? response = await httpServiceAdmin.register(
+      ResponseInfo? response = await httpServiceAdmin.registerAdmin(
           data: data);
       if (response != null) {
         if (response.resultCode == Result.SUCCESS.codeAsString) {
@@ -308,7 +354,7 @@ class MainPageCubit extends Cubit<MainPageState> {
       return "An error occurred ${e}";
     }
     finally{
-      setShowLoading(show: false);
+      //setShowLoading(show: false);
     }
   }
 

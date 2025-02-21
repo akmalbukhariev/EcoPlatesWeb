@@ -6,6 +6,9 @@ class Constants{
   static const String USER = 'User';
   static const String COMPANY = 'Company';
   static const String SEARCH = 'Search';
+  static const String NOTIFICATION = 'Notification';
+  static const String COMPLETED = "Completed";
+  static const String FAILED = "Failed";
   static const String SETTINGS = 'Settings';
   static const String ADMIN = 'ADMIN';
   static const String ADMIN_SUPER = 'SUPER_ADMIN';

@@ -1,4 +1,5 @@
 import 'package:ecoplates_web/src/constant/admin_role.dart';
+import 'package:ecoplates_web/src/presentation/widgets/dashboard/notification_dashboard.dart';
 import 'package:ecoplates_web/src/presentation/widgets/dashboard/search_dashboard.dart';
 import 'package:ecoplates_web/src/presentation/widgets/loading_overlay_widget.dart';
 import 'package:ecoplates_web/src/services/data_provider/http_service_admin.dart';
@@ -111,6 +112,11 @@ class _MainDashboardPage extends State<MainDashboardPage> {
                             selectedMenu = Constants.SEARCH;
                           });
                         }),
+                        buildMenuItem(Constants.NOTIFICATION, Icons.notifications_active, (){
+                          setState(() {
+                            selectedMenu = Constants.NOTIFICATION;
+                          });
+                        }),
                         if(loginCubit.state.adminRole == AdminRole.ADMIN || savedRole == AdminRole.ADMIN)
                           buildMenuItem(Constants.SETTINGS, Icons.settings, (){
                             setState(() {
@@ -215,10 +221,12 @@ class _MainDashboardPage extends State<MainDashboardPage> {
       return const UserDashBoard();
     } else if (selectedMenu == Constants.COMPANY) {
       return const CompanyDashBoard();
-    } else if (selectedMenu == Constants.SETTINGS) {
-      return const SettingDashBoard();
     } else if (selectedMenu == Constants.SEARCH){
       return const SearchDashBoard();
+    } else if (selectedMenu == Constants.NOTIFICATION){
+      return const NotificationDashBoard();
+    } else if (selectedMenu == Constants.SETTINGS) {
+      return const SettingDashBoard();
     }
     else {
       return const Center(child: Text("Select a menu item"));

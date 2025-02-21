@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../../model/change_user_deletion_status.dart';
 import '../../model/change_user_status.dart';
 import '../../model/pagination_info.dart';
-import '../http_response/ResponseSearchCompanyInfo.dart';
+import '../http_response/response_search_company_info.dart';
 import '../http_response/response_change_deletion_status.dart';
 import '../http_response/response_change_user_status.dart';
 import '../http_response/response_company_info.dart';

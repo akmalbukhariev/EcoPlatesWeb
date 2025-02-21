@@ -1,7 +1,9 @@
 import '../model/admin_info.dart';
 import '../model/company_info.dart';
+import '../model/notification_info.dart';
 import '../model/user_info.dart';
 import '../services/http_response/company_data_response.dart';
+import '../services/http_response/notification_data_response.dart';
 import '../services/http_response/user_data_response.dart';
 
 class MainPageState {
@@ -15,6 +17,7 @@ class MainPageState {
   UserDataResponse? userData;
   CompanyDataResponse? companyData;
   List<AdminInfo>? adminData;
+  List<NotificationInfo>? notificationData;
 
   MainPageState({
     this.isLoading = false,
@@ -26,7 +29,8 @@ class MainPageState {
     this.searchCompanyData,
     this.userData,
     this.companyData,
-    this.adminData
+    this.adminData,
+    this.notificationData
   });
 
   MainPageState copyWith({
@@ -40,6 +44,7 @@ class MainPageState {
     Object? userData = _unset,
     Object? companyData = _unset,
     Object? adminData = _unset,
+    Object? notificationData = _unset,
   }) {
     return MainPageState(
       isLoading: isLoading ?? this.isLoading,
@@ -52,6 +57,7 @@ class MainPageState {
       userData: userData == _unset ? this.userData : userData as UserDataResponse?,
       companyData: companyData == _unset ? this.companyData : companyData as CompanyDataResponse?,
       adminData: adminData == _unset ? this.adminData : adminData as List<AdminInfo>?,
+      notificationData: notificationData == _unset ? this.notificationData : notificationData as List<NotificationInfo>?,
     );
   }
 

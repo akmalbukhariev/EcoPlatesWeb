@@ -171,7 +171,7 @@ class _SettingGridView extends State<SettingGridView> {
 
   late MainPageCubit adminCubit;
 
-  List<PlutoRow> _buildRows() {
+  List<PlutoRow> buildRows() {
     return adminCubit.state.adminData?.map((admin) {
       return PlutoRow(cells: {
         'col1': PlutoCell(value: admin.id?.toString() ?? ''),
@@ -186,7 +186,7 @@ class _SettingGridView extends State<SettingGridView> {
     }).toList() ?? [];
   }
 
-  List<PlutoColumn> _buildColumns(BuildContext context) {
+  List<PlutoColumn> buildColumns(BuildContext context) {
     return [
       PlutoColumn(
         title: 'Id',
@@ -206,12 +206,6 @@ class _SettingGridView extends State<SettingGridView> {
         type: PlutoColumnType.text(),
         readOnly: true,
       ),
-      /*PlutoColumn(
-        title: 'Updated',
-        field: 'col4',
-        type: PlutoColumnType.text(),
-        readOnly: true,
-      ),*/
       PlutoColumn(
         title: 'Created',
         field: 'col5',
@@ -252,28 +246,12 @@ class _SettingGridView extends State<SettingGridView> {
 
               String msg = await adminCubit.deleteAdmin(adminId: id);
               ShowSnackBar(context: context, message: msg);
-
-              /*try {
-                ResponseInfo? response = await HttpServiceAdmin.deleteAdminById(
-                    adminId: id);
-
-                if (response != null) {
-                  widget.onRefresh();
-                } else {
-                  ShowSnackBar(context: context,
-                      message: 'Failed to update user deletion status: ${response
-                          ?.resultMsg}');
-                }
-              } catch (e) {
-                ShowSnackBar(context: context,
-                    message: 'Error updating user deletion status: $e');
-              }*/
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text(Constants.DELETE),
+            child: const Text(Constants.DELETE),
           );
         },
       ),
@@ -289,7 +267,7 @@ class _SettingGridView extends State<SettingGridView> {
 
   void refreshGrid() {
     if (adminCubit.state.adminData != null) {
-      final newRows = _buildRows();
+      final newRows = buildRows();
 
       stateManager.removeAllRows();
       stateManager.appendRows(newRows);
@@ -307,8 +285,8 @@ class _SettingGridView extends State<SettingGridView> {
           }
         },
         child: PlutoGrid(
-          columns: _buildColumns(context),
-          rows: _buildRows(),
+          columns: buildColumns(context),
+          rows: buildRows(),
           configuration: const PlutoGridConfiguration(),
           onLoaded: (PlutoGridOnLoadedEvent event) async {
             stateManager = event.stateManager;
@@ -317,10 +295,6 @@ class _SettingGridView extends State<SettingGridView> {
           onChanged: (PlutoGridOnChangedEvent event) {
             print("Row changed: ${event.row.cells}");
           },
-          /*createFooter: (stateManager) {
-            stateManager.setPageSize(100, notify: false);
-            return PlutoPagination(stateManager);
-          },*/
         )
     );
   }
